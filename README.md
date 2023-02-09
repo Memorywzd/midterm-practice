@@ -25,8 +25,19 @@
 
 ## 第一部分：后端抓包C/C++程序
 
+#### 环境说明
+
+*建议使用visual studio开发，clion的远程开发不成熟*
+
+虚拟机中将教师提供的libpcap-1.10.1.tar.gz解压后configure、make、make install，并解决报错中的问题；vs打开项目后
+
 - package filter
+  - sniffer.cpp 实现数据捕获 （2.9 update：暂实现以太网解析，未完成wifi帧头定义）
+
 - 报文解析
+  - parse.cpp 实现HTTP载荷解析
+  - storage.cpp 实现将数据包写入数据库和文件
+
 
 ----
 
