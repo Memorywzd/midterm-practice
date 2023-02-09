@@ -29,7 +29,7 @@
 
 *建议使用visual studio开发，clion的远程开发不成熟*
 
-虚拟机中将教师提供的libpcap-1.10.1.tar.gz解压后configure、make、make install，并解决报错中的问题；vs打开项目后
+虚拟机中将教师提供的libpcap-1.10.1.tar.gz解压后configure、make、make install，并解决报错中的问题；vs打开项目后连接虚拟机测试编译
 
 - package filter
   - sniffer.cpp 实现数据捕获 （2.9 update：暂实现以太网解析，未完成wifi帧头定义）
