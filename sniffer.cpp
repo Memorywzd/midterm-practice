@@ -168,8 +168,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	else cout << "No payload" << endl;
 }
 
-void do_capture(int pkt_num) {
-    char *dev = nullptr;                /* capture device name */
+void do_capture(int pkt_num, char* dev = nullptr) {
     char errbuf[PCAP_ERRBUF_SIZE];      /* error buffer */
     pcap_t *handle;                     /* packet capture handle */
 
@@ -210,9 +209,13 @@ void do_capture(int pkt_num) {
         exit(EXIT_FAILURE);
     }
 
-    /* make sure we're capturing on an Ethernet device [2] */
-    if (pcap_datalink(handle) != DLT_EN10MB) {
-        fprintf(stderr, "%s is not an Ethernet\n", dev);
+    /* make sure we're capturing on an Ethernet device or Wi-Fi device [2] */
+    if (pcap_datalink(handle) != DLT_EN10MB ||
+		pcap_datalink(handle) != DLT_IEEE802_11 ||
+		pcap_datalink(handle) != DLT_IEEE802_11_RADIO ||
+		pcap_datalink(handle) != DLT_PRISM_HEADER ||
+		pcap_datalink(handle) != DLT_IEEE802_11_RADIO_AVS) {
+        fprintf(stderr, "%s is neither Ethernet nor Wi-Fi\n", dev);
         exit(EXIT_FAILURE);
     }
 

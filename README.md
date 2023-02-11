@@ -32,11 +32,21 @@
 虚拟机中将教师提供的libpcap-1.10.1.tar.gz解压后configure、make、make install，并解决报错中的问题；vs打开项目后连接虚拟机测试编译
 
 - package filter
-  - sniffer.cpp 实现数据捕获 （2.9 update：暂实现以太网解析，未完成wifi帧头定义）
-
+  - sniffer.cpp 实现数据捕获 （2.11 update：完成wifi帧头定义，需要分别测试，确定帧头长度、内容的正确性，选择最合适的工作模式）
 - 报文解析
   - parse.cpp 实现HTTP载荷解析
   - storage.cpp 实现将数据包写入数据库和文件
+
+802.11帧头长度参考资料
+
+| 功能    | To DS字段 | From DS字段 | Address1 | Address2 | Address3 | Address4 |
+| ------- | --------- | ----------- | -------- | -------- | -------- | -------- |
+| IBSS    | 0         | 0           | DA/RA    | SA/TA    | BSSID    | 未用     |
+| TP AP   | 1         | 0           | BSSID/RA | SA/TA    | DA       | 未用     |
+| From AP | 0         | 1           | DA/RA    | BSSID/TA | SA       | 未用     |
+| WDS     | 1         | 1           | BSSID/RA | BSSID/TA | DA       | SA       |
+
+
 
 
 ----

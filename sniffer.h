@@ -7,7 +7,8 @@
 
 using namespace std;
 
-/* maximum bytes per packet to capture
+/* 
+ * maximum bytes per packet to capture
  * for ethernet, it's 1518
  * for Wi-Fi, it's 2048
 */
@@ -27,9 +28,94 @@ struct sniff_ethernet {
     u_short ether_type;                     // IP? ARP? RARP? etc
 };
 
-/* TODO WIFI 802.11 头部定义 */
+/* ***Test required*** WIFI 802.11 头部定义 */
+/* monitor mode网卡有三种工作模式，包含来自内核的不同附加信息 */
+//Libpcap link type:  DLT_IEEE802_11_RADIO
+//radiotap header 长度由it_len指示
+struct radiotap_header {
+	u_int8_t it_version;     /* set to 0 */
+	u_int8_t it_pad;
+	u_int16_t it_len;        /* entire length */
+	u_int32_t it_present;    /* fields present */
+}__attribute__((__packed__));
 
+//Libpcap link type:  DLT_PRISM_HEADER
+//prism value
+struct prism_value {
+	u_int32_t did;
+	u_int16_t status;
+	u_int16_t len;
+	u_int32_t data;
+};
 
+//prism header 144 bytes
+struct prism_header {
+	u_int32_t msgcode;
+	u_int32_t msglen;
+    u_char devname[16];
+	struct prism_value hosttime;
+	struct prism_value mactime;
+	struct prism_value channel;
+	struct prism_value rssi;
+	struct prism_value sq;
+	struct prism_value signal;
+	struct prism_value noise;
+	struct prism_value rate;
+	struct prism_value istx;
+	struct prism_value frmlen;
+};
+
+//Libpcap link type:  DLT_IEEE802_11_RADIO_AVS
+//avs header 64 bytes
+struct avs_header {
+	u_int32_t magic;
+	u_int32_t version;
+	u_int32_t length;
+	u_int32_t mactime;
+	u_int32_t hosttime;
+	u_int32_t phytype;
+	u_int32_t channel;
+	u_int32_t datarate;
+	u_int32_t antenna;
+	u_int32_t priority;
+	u_int32_t ssi_type;
+	u_int32_t ssi_signal;
+	u_int32_t ssi_noise;
+	u_int32_t preamble;
+	u_int32_t encoding;
+};
+
+//wifi 802.11 header  ***Test required***
+struct sniff_wlan {
+	u_int16_t frame_control;
+	u_int16_t duration_id;
+	u_char addr1[6];
+	u_char addr2[6];
+	u_char addr3[6];
+	u_int16_t seq_ctrl;
+	union {
+		u_int16_t qos;
+		u_int8_t addr4[6];
+		struct {
+			u_int16_t qos;
+			u_int32_t ht;
+		} __attribute__((packed)) ht;
+		struct {
+			u_int8_t addr4[6];
+			u_int16_t qos;
+			u_int32_t ht;
+		} __attribute__((packed)) addr4_qos_ht;
+	}u;
+}__attribute__((__packed__));
+
+//LLC
+struct sniff_llc {
+	u_char dsap;
+	u_char ssap;
+	u_char ctrl;			//1 or 2 bytes?
+	u_char org_code[3];		//snap
+	u_int16_t eth_type;		//snap
+}__attribute__((__packed__));
 
 // IP header
 struct sniff_ip {
@@ -82,4 +168,4 @@ void print_payload(const u_char *payload, int len);
 
 void print_hex_ascii_line(const u_char *payload, int len, int offset);
 
-void do_capture(int);
+void do_capture(int, char*);
