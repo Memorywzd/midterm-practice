@@ -1,5 +1,7 @@
 #include "sniffer.h"
 
+bool wired = false;
+
 void print_hex_ascii_line(const u_char *payload, int len, int offset) {
     int i;
     int gap;
@@ -80,7 +82,6 @@ void print_payload(const u_char *payload, int len) {
     }
 }
 
-//以太网包
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
     static int count = 1;                       /* packet counter */
     /* declare pointers to packet headers */
@@ -96,17 +97,26 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
     printf("Packet number %d:\n", count);
     count++;
 
-    /* define ethernet header */
-    ethernet = (struct sniff_ethernet *) (packet);
+    if (wired) {
+        /* define ethernet header */
+        ethernet = (struct sniff_ethernet*)(packet);
 
-	/* print ehternet header */
-	printf("Ethernet header: \n");
-	printf("  |-Source Address: %02x:%02x:%02x:%02x:%02x:%02x \n", ethernet->ether_shost[0], ethernet->ether_shost[1], ethernet->ether_shost[2], ethernet->ether_shost[3], ethernet->ether_shost[4], ethernet->ether_shost[5]);
-	printf("  |-Destination Address: %02x:%02x:%02x:%02x:%02x:%02x \n", ethernet->ether_dhost[0], ethernet->ether_dhost[1], ethernet->ether_dhost[2], ethernet->ether_dhost[3], ethernet->ether_dhost[4], ethernet->ether_dhost[5]);
-	printf("  |-Ethernet Protocol: %u\n", ethernet->ether_type);
+        /* print ehternet header */
+        printf("Ethernet header: \n");
+        printf("  |-Source Address: %02x:%02x:%02x:%02x:%02x:%02x \n", ethernet->ether_shost[0], ethernet->ether_shost[1], ethernet->ether_shost[2], ethernet->ether_shost[3], ethernet->ether_shost[4], ethernet->ether_shost[5]);
+        printf("  |-Destination Address: %02x:%02x:%02x:%02x:%02x:%02x \n", ethernet->ether_dhost[0], ethernet->ether_dhost[1], ethernet->ether_dhost[2], ethernet->ether_dhost[3], ethernet->ether_dhost[4], ethernet->ether_dhost[5]);
+        printf("  |-Ethernet Protocol: %u\n", ethernet->ether_type);
 
-    /* define/compute ip header offset */
-    ip = (struct sniff_ip *) (packet + SIZE_ETHERNET);
+        /* define/compute ip header offset */
+        ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
+    }
+    else {
+		/* 使用省事处理 */
+		/* define/compute ip header offset */
+		ip = (struct sniff_ip*)(packet + SIZE_80211_HEADER + SIZE_LLC_HEADER + SIZE_RADIOTAP_HEADER);
+    }
+
+    
     size_ip = IP_HL(ip) * 4;
     if (size_ip < 20) {
         printf("   * Invalid IP header length: %u bytes\n", size_ip);
@@ -168,19 +178,22 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	else cout << "No payload" << endl;
 }
 
-void do_capture(int pkt_num, char* dev = nullptr) {
+void do_capture(int pkt_num, string device) {
+    char* dev = nullptr;
+    string devtype;
+	if (device != "") dev = (char*)device.c_str();
     char errbuf[PCAP_ERRBUF_SIZE];      /* error buffer */
     pcap_t *handle;                     /* packet capture handle */
 
     char filter_exp[] =                 /* filter expression [3] */
-        "dst port 80 or src port 80";   
+        "port 80";   
     struct bpf_program fp;              /* compiled filter program (expression) */
     bpf_u_int32 mask;                   /* subnet mask */
     bpf_u_int32 net;                    /* ip */
     int num_packets = pkt_num;          /* number of packets to capture */
 
     /* check for capture device name on command-line */
-    if (dev == NULL) {
+    if (dev == nullptr) {
         /* find a capture device if not specified on command-line */
         dev = pcap_lookupdev(errbuf);
         //dev = pcap_findalldevs();
@@ -197,11 +210,6 @@ void do_capture(int pkt_num, char* dev = nullptr) {
         mask = 0;
     }
 
-    /* print capture info */
-    printf("Device: %s\n", dev);
-    printf("Number of packets: %d\n", num_packets);
-    printf("Filter expression: %s\n", filter_exp);
-
     /* open capture device */
     handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
     if (handle == nullptr) {
@@ -210,14 +218,27 @@ void do_capture(int pkt_num, char* dev = nullptr) {
     }
 
     /* make sure we're capturing on an Ethernet device or Wi-Fi device [2] */
-    if (pcap_datalink(handle) != DLT_EN10MB ||
-		pcap_datalink(handle) != DLT_IEEE802_11 ||
-		pcap_datalink(handle) != DLT_IEEE802_11_RADIO ||
-		pcap_datalink(handle) != DLT_PRISM_HEADER ||
+    if (pcap_datalink(handle) != DLT_EN10MB &&
+		pcap_datalink(handle) != DLT_IEEE802_11 &&
+		pcap_datalink(handle) != DLT_IEEE802_11_RADIO &&
+		pcap_datalink(handle) != DLT_PRISM_HEADER &&
 		pcap_datalink(handle) != DLT_IEEE802_11_RADIO_AVS) {
         fprintf(stderr, "%s is neither Ethernet nor Wi-Fi\n", dev);
         exit(EXIT_FAILURE);
     }
+	
+	/* check whether the connection is wired or wireless  */
+	if (pcap_datalink(handle) == DLT_EN10MB) {
+		wired = true;
+		devtype = "ethernet";
+	}
+	else devtype = "wireless";
+
+    /* print capture info */
+	cout << "Device: " << dev << endl;
+	cout << "Device type: " << devtype << endl;
+	cout << "Number of packets:  " << num_packets << endl;
+	cout << "Filter expression:  " << filter_exp << endl;
 
     /* compile the filter expression */
     if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {

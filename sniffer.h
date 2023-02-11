@@ -7,13 +7,6 @@
 
 using namespace std;
 
-/* 
- * maximum bytes per packet to capture
- * for ethernet, it's 1518
- * for Wi-Fi, it's 2048
-*/
-#define SNAP_LEN 1518
-
 /* 以太网卡测试用 */
 // ethernet headers are always exactly 14 bytes [1]
 #define SIZE_ETHERNET 14
@@ -29,6 +22,10 @@ struct sniff_ethernet {
 };
 
 /* ***Test required*** WIFI 802.11 头部定义 */
+// 不考虑分布式ap、简单pad的802.11标准省事处理如下
+#define SIZE_80211_HEADER 24
+#define SIZE_LLC_HEADER 8
+#define SIZE_RADIOTAP_HEADER 18
 /* monitor mode网卡有三种工作模式，包含来自内核的不同附加信息 */
 //Libpcap link type:  DLT_IEEE802_11_RADIO
 //radiotap header 长度由it_len指示
@@ -168,4 +165,4 @@ void print_payload(const u_char *payload, int len);
 
 void print_hex_ascii_line(const u_char *payload, int len, int offset);
 
-void do_capture(int, char*);
+void do_capture(int pkt_num, string device = "");
