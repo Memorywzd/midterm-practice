@@ -272,7 +272,7 @@ void do_capture() {
     pcap_loop(handle, num_packets, got_packet, nullptr);
 }
 
-void ctrl_c() {
+void ctrl_c(int sig) {
     cout << "keyboard interrupt detected, stop capturing..." << endl;
     pcap_breakloop(handle);
     /* cleanup */

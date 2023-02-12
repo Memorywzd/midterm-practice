@@ -84,6 +84,7 @@
     <IncludePath>E:\midterm-practice\libpcap-1.10.1;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="daemonize.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parse.cpp" />
     <ClCompile Include="process.cpp" />
@@ -91,6 +92,7 @@
     <ClCompile Include="storage.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="daemonize.h" />
     <ClInclude Include="parse.h" />
     <ClInclude Include="process.h" />
     <ClInclude Include="sniffer.h" />

@@ -170,4 +170,4 @@ void set_param(int num = -1, char* exp = "tcp and port 80", char* device = nullp
 
 void do_capture();
 
-void ctrl_c();
+void ctrl_c(int);

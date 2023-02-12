@@ -27,5 +27,8 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	do_capture();
+
+	signal(SIGINT, ctrl_c);
+	
 	return 0;
 }
