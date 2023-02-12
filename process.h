@@ -6,9 +6,9 @@
 
 #include <pcap.h>
 
-using namespace std;
+#include "daemonize.h"
 
-void ctrl_c();
+using namespace std;
 
 void list_interfaces();
 

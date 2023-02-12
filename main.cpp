@@ -3,6 +3,9 @@
 
 
 int main(int argc, char *argv[]) {
+	signal(SIGINT, ctrl_c);
+	daemonize(argv[0]);
+	
 	char opt;
 	while ((opt = getopt(argc, argv, "lhn:f:i:")) != -1) {
 		switch (opt) {
@@ -27,8 +30,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	do_capture();
-
-	signal(SIGINT, ctrl_c);
 	
 	return 0;
 }
