@@ -1,6 +1,20 @@
 #include "sniffer.h"
 
+int pkt_num = -1;
+char* filter_exp = "tcp and port 80";
+char* dev = nullptr;
+
 bool wired = false;
+
+pcap_t* handle;                     /* packet capture handle */
+
+struct bpf_program fp;              /* compiled filter program (expression) */
+
+void set_param(int num, char* exp, char* device) {
+	pkt_num = num;
+	filter_exp = exp;
+	dev = device;
+}
 
 void print_hex_ascii_line(const u_char *payload, int len, int offset) {
     int i;
@@ -97,6 +111,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
     printf("Packet number %d:\n", count);
     count++;
 
+	/* 检查网络类型，获取ip载荷 */
     if (wired) {
         /* define ethernet header */
         ethernet = (struct sniff_ethernet*)(packet);
@@ -115,7 +130,6 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 		/* define/compute ip header offset */
 		ip = (struct sniff_ip*)(packet + SIZE_80211_HEADER + SIZE_LLC_HEADER + SIZE_RADIOTAP_HEADER);
     }
-
     
     size_ip = IP_HL(ip) * 4;
     if (size_ip < 20) {
@@ -178,16 +192,9 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 	else cout << "No payload" << endl;
 }
 
-void do_capture(int pkt_num, string device) {
-    char* dev = nullptr;
+void do_capture() {
     string devtype;
-	if (device != "") dev = (char*)device.c_str();
     char errbuf[PCAP_ERRBUF_SIZE];      /* error buffer */
-    pcap_t *handle;                     /* packet capture handle */
-
-    char filter_exp[] =                 /* filter expression [3] */
-        "port 80";   
-    struct bpf_program fp;              /* compiled filter program (expression) */
     bpf_u_int32 mask;                   /* subnet mask */
     bpf_u_int32 net;                    /* ip */
     int num_packets = pkt_num;          /* number of packets to capture */
@@ -237,6 +244,15 @@ void do_capture(int pkt_num, string device) {
     /* print capture info */
 	cout << "Device: " << dev << endl;
 	cout << "Device type: " << devtype << endl;
+    char str[16];
+	u_int32_t anet = ntohl(net);
+	u_int32_t amask = ntohl(mask);
+    memset(str, 0, sizeof(str));
+    sprintf(str, "%d.%d.%d.%d", (anet >> 24) & 0xff, (anet >> 16) & 0xff, (anet >> 8) & 0xff, anet & 0xff);
+    cout << "Device net&mask: "<< str;
+	memset(str, 0, sizeof(str));
+	sprintf(str, "%d.%d.%d.%d", (amask >> 24) & 0xff, (amask >> 16) & 0xff, (amask >> 8) & 0xff, amask & 0xff);
+    cout << ' ' << str << endl;
 	cout << "Number of packets:  " << num_packets << endl;
 	cout << "Filter expression:  " << filter_exp << endl;
 
@@ -254,10 +270,13 @@ void do_capture(int pkt_num, string device) {
 
     /* now we can set our callback function */
     pcap_loop(handle, num_packets, got_packet, nullptr);
+}
 
+void ctrl_c() {
+    cout << "keyboard interrupt detected, stop capturing..." << endl;
+    pcap_breakloop(handle);
     /* cleanup */
     pcap_freecode(&fp);
     pcap_close(handle);
-
-    printf("Capture complete.\n");
+    exit(0);
 }

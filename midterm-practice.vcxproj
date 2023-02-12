@@ -86,11 +86,13 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parse.cpp" />
+    <ClCompile Include="process.cpp" />
     <ClCompile Include="sniffer.cpp" />
     <ClCompile Include="storage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="parse.h" />
+    <ClInclude Include="process.h" />
     <ClInclude Include="sniffer.h" />
     <ClInclude Include="storage.h" />
   </ItemGroup>

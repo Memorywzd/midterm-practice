@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <cstring>
 #include <sys/types.h>
 
 #include <pcap.h>
@@ -165,4 +166,8 @@ void print_payload(const u_char *payload, int len);
 
 void print_hex_ascii_line(const u_char *payload, int len, int offset);
 
-void do_capture(int pkt_num, string device = "");
+void set_param(int num = -1, char* exp = "tcp and port 80", char* device = nullptr);
+
+void do_capture();
+
+void ctrl_c();
