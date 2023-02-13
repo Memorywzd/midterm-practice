@@ -19,15 +19,16 @@ void list_interfaces() {
 
 void help(char* name) {
 	{
-		cout << "By default, the program will capture HTTP packets from the first available interface." << endl;
-		cout << "Usage: ./" << name;
-		cout<< "[-n <number> ][-f <expression>][-i <interface>][-l][-h]" << endl;
+		cout << "Usage: " << name;
+		cout<< " [-n <number> ][-f <expression>][-i <interface>][-d][-l][-h]" << endl;
 		cout << "Options:" << endl;
 		cout << "  -n <number>     Number of packets to capture." << endl;
 		cout << "  -f <expression> Capture only packets that satisfy the filter <expression>." << endl;
 		cout << "  -i <interface>  Listen on <interface> for packets." << endl;
+		cout << "  -d              Capture packets on daemon mod." << endl;
 		cout << "  -l              List all network interfaces." << endl;
 		cout << "  -h              Print this help message." << endl;
+		cout << "By default, the program will capture HTTP packets from the first available interface." << endl;
 	}
 	exit(0);
 }

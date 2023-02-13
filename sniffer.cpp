@@ -10,9 +10,13 @@ pcap_t* handle;                     /* packet capture handle */
 
 struct bpf_program fp;              /* compiled filter program (expression) */
 
-void set_param(int num, char* exp, char* device) {
+void set_num(int num) {
 	pkt_num = num;
+}
+void set_exp(char* exp) {
 	filter_exp = exp;
+}
+void set_device(char* device) {
 	dev = device;
 }
 
@@ -273,7 +277,7 @@ void do_capture() {
 }
 
 void ctrl_c(int sig) {
-    cout << "keyboard interrupt detected, stop capturing..." << endl;
+    cout << "\nKeyboard interrupt detected, stop capturing..." << endl;
     pcap_breakloop(handle);
     /* cleanup */
     pcap_freecode(&fp);
