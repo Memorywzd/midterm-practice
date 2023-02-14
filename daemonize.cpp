@@ -8,6 +8,44 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <syslog.h>
+#include <errno.h>
+#include <string.h>
+
+#define LOCKFILE "/var/run/sniffer.pid"
+#define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+
+int lockfile(int fd)
+{
+	struct flock f1;
+	f1.l_type = F_WRLCK;
+	f1.l_start = 0;
+	f1.l_whence = SEEK_SET;
+	f1.l_len = 0;
+	return (fcntl(fd, F_SETLK, &f1));
+}
+
+bool already_running() {
+	int fd;
+	char buf[16];
+	
+	fd = open(LOCKFILE, O_RDWR | O_CREAT, LOCKMODE);
+	if (fd < 0) {
+		syslog(LOG_ERR, "can't open %s: %s", LOCKFILE, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	if (lockfile(fd) < 0) {
+		if (errno == EACCES || errno == EAGAIN) {
+			close(fd);
+			return true;
+		}
+		syslog(LOG_ERR, "can't lock %s: %s", LOCKFILE, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	ftruncate(fd, 0);
+	sprintf(buf, "%ld", (long)getpid());
+	write(fd, buf, strlen(buf) + 1);
+	return false;
+}
 
 void daemonize(const char* cmd) {
 	pid_t pid;

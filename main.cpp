@@ -1,7 +1,6 @@
 #include "sniffer.h"
 #include "process.h"
 
-
 int main(int argc, char *argv[]) {
 	signal(SIGINT, ctrl_c);
 	
@@ -33,7 +32,13 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	
-	if (isDaemon) daemonize(argv[0]);
+	if (isDaemon) {
+		daemonize(argv[0]);
+		if (already_running()) {
+			logger(3, "Another instance is running, exit.");
+			exit(1);
+		}
+	}
 	do_capture();
 	
 	return 0;
