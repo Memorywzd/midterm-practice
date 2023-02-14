@@ -8,8 +8,6 @@
 
 #include "daemonize.h"
 
-using namespace std;
-
 void list_interfaces();
 
 void help(char*);

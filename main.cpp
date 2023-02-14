@@ -6,10 +6,11 @@ int main(int argc, char *argv[]) {
 	signal(SIGINT, ctrl_c);
 	
 	char opt;
+	bool isDaemon = false;
 	while ((opt = getopt(argc, argv, "dlhn:f:i:")) != -1) {
 		switch (opt) {
 		case 'd':
-			daemonize(argv[0]);
+			isDaemon = true;
 			break;
 		case 'l':
 			list_interfaces();
@@ -32,6 +33,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	
+	if (isDaemon) daemonize(argv[0]);
 	do_capture();
 	
 	return 0;

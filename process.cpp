@@ -1,5 +1,7 @@
 #include "process.h"
 
+using namespace std;
+
 void list_interfaces() {
 	pcap_if_t* alldevs;
 	char errbuf[PCAP_ERRBUF_SIZE];
