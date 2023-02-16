@@ -40,17 +40,17 @@
 
 - 选用vue或react
 - 参照api doc编写，对api提出需求
-    /analyse/reqtfea (请求报文的特征)
-    /analyse/reqtype (访问类型 - 饼图)
-    /analyse/respfea(响应报文的特征)
-    /analyse/resptype(载荷类型 - 饼图)
-    /analyse/sendhttp(发送http数量)
-    /analyse/recehttp(接收http数量)
-    /analyse/reqlength(请求报文的帧长)
-    /analyse/resplength(响应报文的帧长)
-
-    /whois/hostin(请求报文的host兴趣)
-    /whois/htmltxt(网页内容性质)
-    /whois/domaintype(域名类型)
+    /analyse/reqtfea (请求报文的特征)<br>
+    /analyse/reqtype (访问类型 - 饼图)<br>
+    /analyse/respfea(响应报文的特征)<br>
+    /analyse/resptype(载荷类型 - 饼图)<br>
+    /analyse/sendhttp(发送http数量)<br>
+    /analyse/recehttp(接收http数量)<br>
+    /analyse/reqlength(请求报文的帧长)<br>
+    /analyse/resplength(响应报文的帧长)<br>
+    <br>
+    /whois/hostin(请求报文的host兴趣)<br>
+    /whois/htmltxt(网页内容性质)<br>
+    /whois/domaintype(域名类型)<br>
 - 参照任务书2.4节制作页面
 - 先期完成文档的序言部分
