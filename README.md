@@ -24,7 +24,6 @@
 ----
 
 ## 第一部分：后端抓包C/C++程序
-
 - package filter
 - 报文解析
 
@@ -41,5 +40,17 @@
 
 - 选用vue或react
 - 参照api doc编写，对api提出需求
+    /analyse/reqtfea (请求报文的特征)
+    /analyse/reqtype (访问类型 - 饼图)
+    /analyse/respfea(响应报文的特征)
+    /analyse/resptype(载荷类型 - 饼图)
+    /analyse/sendhttp(发送http数量)
+    /analyse/recehttp(接收http数量)
+    /analyse/reqlength(请求报文的帧长)
+    /analyse/resplength(响应报文的帧长)
+
+    /whois/hostin(请求报文的host兴趣)
+    /whois/htmltxt(网页内容性质)
+    /whois/domaintype(域名类型)
 - 参照任务书2.4节制作页面
 - 先期完成文档的序言部分
