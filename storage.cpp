@@ -1,5 +1,6 @@
 #include "storage.h"
 #include "logger.h"
+#include "parse.h"
 
 #include <iostream>
 #include <sstream>
@@ -10,13 +11,14 @@ using namespace std;
 
 bool wired = false;
 void set_wired(bool w) {
-	wired = w;
+    wired = w;
 }
 
-void print_hex_ascii_line(const u_char* payload, int len, int offset) {
+
+void print_hex_ascii_line(const char* payload, int len, int offset) {
     int i;
     int gap;
-    const u_char* ch;
+    const char* ch;
 
     ostringstream output;
 
@@ -57,15 +59,15 @@ void print_hex_ascii_line(const u_char* payload, int len, int offset) {
 
     output << endl;
 
-	logger(LOG_INFO, output.str().c_str());
+    logger(LOG_INFO, output.str().c_str());
 }
 
-void print_payload(const u_char* payload, int len) {
+void print_payload(const char* payload, int len) {
     int len_rem = len;
     int line_width = 16;                /* number of bytes per line */
     int line_len;
     int offset = 0;                     /* zero-based offset counter */
-    const u_char* ch = payload;
+    const char* ch = payload;
 
     if (len <= 0)
         return;
@@ -103,13 +105,13 @@ void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
     const struct sniff_ethernet* ethernet;      /* The ethernet header [1] */
     const struct sniff_ip* ip;                  /* The IP header */
     const struct sniff_tcp* tcp;                /* The TCP header */
-    const u_char* payload;                      /* Packet payload */
+    char* payload;                      /* Packet payload */
 
     int size_ip;
     int size_tcp;
     int size_payload;
 
-	string *result = new string("");
+    string* result = new string("");
     result->append("Packet number " + to_string(count) + ":\n");
     count++;
 
@@ -120,12 +122,12 @@ void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
 
         /* print ehternet header */
         result->append("Ethernet header: \n");
-		char* buf = new char[100];
+        char* buf = new char[100];
         sprintf(buf, "  |-Source Address: %02x:%02x:%02x:%02x:%02x:%02x \n", ethernet->ether_shost[0], ethernet->ether_shost[1], ethernet->ether_shost[2], ethernet->ether_shost[3], ethernet->ether_shost[4], ethernet->ether_shost[5]);
         result->append(string(buf));
-		sprintf(buf, "  |-Destination Address: %02x:%02x:%02x:%02x:%02x:%02x \n", ethernet->ether_dhost[0], ethernet->ether_dhost[1], ethernet->ether_dhost[2], ethernet->ether_dhost[3], ethernet->ether_dhost[4], ethernet->ether_dhost[5]);
+        sprintf(buf, "  |-Destination Address: %02x:%02x:%02x:%02x:%02x:%02x \n", ethernet->ether_dhost[0], ethernet->ether_dhost[1], ethernet->ether_dhost[2], ethernet->ether_dhost[3], ethernet->ether_dhost[4], ethernet->ether_dhost[5]);
         result->append(string(buf));
-		delete buf;
+        delete buf;
         result->append("  |-Ethernet Protocol: " + to_string(ethernet->ether_type) + "\n");
 
         /* define/compute ip header offset */
@@ -140,12 +142,12 @@ void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
     size_ip = IP_HL(ip) * 4;
     if (size_ip < 20) {
         result->append("   * Invalid IP header length: " + to_string(size_ip) + " bytes\n");
-		logger(LOG_INFO, result->c_str());
+        logger(LOG_INFO, result->c_str());
         return;
     }
 
     /* print source and destination IP addresses */
-	result->append("       From: " + string(inet_ntoa(ip->ip_src)) + '\n');
+    result->append("       From: " + string(inet_ntoa(ip->ip_src)) + '\n');
     result->append("         To: " + string(inet_ntoa(ip->ip_dst)) + '\n');
 
     /* determine protocol */
@@ -155,18 +157,18 @@ void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
         break;
     case IPPROTO_UDP:
         result->append("   Protocol: UDP\n");
-		logger(LOG_INFO, result->c_str());
+        logger(LOG_INFO, result->c_str());
         return;
     case IPPROTO_ICMP:
         result->append("   Protocol: ICMP\n");
-		logger(LOG_INFO, result->c_str());
+        logger(LOG_INFO, result->c_str());
         return;
     case IPPROTO_IP:
         result->append("   Protocol: IP\n");
-		logger(LOG_INFO, result->c_str());
+        logger(LOG_INFO, result->c_str());
         return;
     default:
-		result->append("   Protocol: unknown\n");
+        result->append("   Protocol: unknown\n");
         logger(LOG_INFO, result->c_str());
         return;
     }
@@ -179,15 +181,15 @@ void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
     tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
     size_tcp = TH_OFF(tcp) * 4;
     if (size_tcp < 20) {
-		result->append("   * Invalid TCP header length: " + to_string(size_tcp) + " bytes\n");
+        result->append("   * Invalid TCP header length: " + to_string(size_tcp) + " bytes\n");
         return;
     }
 
-	result->append("   Src port: " + to_string(ntohs(tcp->th_sport)) + "\n");
-	result->append("   Dst port: " + to_string(ntohs(tcp->th_dport)) + "\n");
+    result->append("   Src port: " + to_string(ntohs(tcp->th_sport)) + "\n");
+    result->append("   Dst port: " + to_string(ntohs(tcp->th_dport)) + "\n");
 
     /* define/compute tcp payload (segment) offset */
-    payload = (u_char*)(packet + SIZE_ETHERNET + size_ip + size_tcp);
+    payload = (char*)(packet + SIZE_ETHERNET + size_ip + size_tcp);
 
     /* compute tcp payload (segment) size */
     size_payload = ntohs(ip->ip_len) - (size_ip + size_tcp);
@@ -197,13 +199,14 @@ void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
      * treat it as a string.
      */
     if (size_payload > 0) {
-		result->append("   Payload (" + to_string(size_payload) + " bytes):\n");
+        result->append("   Payload (" + to_string(size_payload) + " bytes):\n");
         logger(LOG_INFO, result->c_str());
         print_payload(payload, size_payload);
+        parse_http_payload(payload, size_payload);
     }
     else {
-		result->append("No payload\n");
+        result->append("No payload\n");
         logger(LOG_INFO, result->c_str());
     }
-	delete result;
+    delete result;
 }
