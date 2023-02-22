@@ -49,7 +49,7 @@
     /analyse/requestLength(请求报文的帧长)<br>
     /analyse/responseLength(响应报文的帧长)<br>
     <br>
-    /whois/hostIn(请求报文的host兴趣)<br>
+    /whois/hostInterest(请求报文的host兴趣)<br>
     /whois/htmlTxt(网页内容性质)<br>
     /whois/domainType(域名类型)<br>
 - 参照任务书2.4节制作页面
