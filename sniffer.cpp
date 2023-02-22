@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstring>
 #include <syslog.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -15,6 +16,8 @@ pcap_t* handle;                     /* packet capture handle */
 
 struct bpf_program fp;              /* compiled filter program (expression) */
 
+int writefd[NUM_CHILDREN];
+
 void set_num(int num) {
 	pkt_num = num;
 }
@@ -25,13 +28,23 @@ void set_device(char* device) {
 	dev = device;
 }
 
+void write_pipe(u_char* args, const struct pcap_pkthdr* header, const u_char* packet) {
+	int len = header->caplen;
+    static int count = 1;				/* packet counter */
+    write(writefd[count % NUM_CHILDREN], &count, 4);
+    write(writefd[count % NUM_CHILDREN], args, 1);
+    write(writefd[count % NUM_CHILDREN], &len, 4);
+	write(writefd[count % NUM_CHILDREN], packet, len);
+	count++;
+}
+
 void do_capture() {
     string devtype;
     char errbuf[PCAP_ERRBUF_SIZE];      /* error buffer */
     bpf_u_int32 mask;                   /* subnet mask */
     bpf_u_int32 net;                    /* ip */
-    int num_packets = pkt_num;          /* number of packets to capture */
     string* result = new string("");
+    u_char wired_flag = '0';
 
     /* check for capture device name on command-line */
     if (dev == nullptr) {
@@ -70,8 +83,8 @@ void do_capture() {
 	
 	/* check whether the connection is wired or wireless  */
 	if (pcap_datalink(handle) == DLT_EN10MB) {
-        set_wired(true);
-		devtype = "ethernet";
+        wired_flag = '1';
+        devtype = "ethernet";
 	}
 	else devtype = "wireless";
 
@@ -87,7 +100,7 @@ void do_capture() {
 	memset(str, 0, sizeof(str));
 	sprintf(str, "%d.%d.%d.%d", (amask >> 24) & 0xff, (amask >> 16) & 0xff, (amask >> 8) & 0xff, amask & 0xff);
 	result->append(" " + string(str) + '\n');
-    result->append("Number of packets: " + to_string(num_packets) + '\n');
+    result->append("Number of packets: " + to_string(pkt_num) + '\n');
     result->append("Filter expression:  " + string(filter_exp) + '\n');
 	logger(LOG_INFO, result->c_str());
 	delete result;
@@ -105,7 +118,7 @@ void do_capture() {
     }
 
     /* now we can set our callback function */
-    pcap_loop(handle, num_packets, got_packet, nullptr);
+    pcap_loop(handle, pkt_num, write_pipe, &wired_flag);
 }
 
 void ctrl_c(int sig) {
@@ -115,4 +128,51 @@ void ctrl_c(int sig) {
     pcap_freecode(&fp);
     pcap_close(handle);
     exit(0);
+}
+
+void dispatch() {
+    int pipefd[2];
+    pid_t cpid;
+
+    for (int i = 0; i < NUM_CHILDREN; i++) {
+        if (pipe(pipefd) == -1) {
+            perror("pipe");
+            exit(EXIT_FAILURE);
+        }
+        writefd[i] = pipefd[1];
+
+        cpid = fork();
+        if (cpid == -1) {
+            perror("fork");
+            exit(EXIT_FAILURE);
+        }
+
+        if (cpid == 0) {				/* Child reads from pipe */
+            close(pipefd[1]);			/* Close unused write end */
+            int* caplen = new int;
+            int* count = new int;
+			u_char* wired_flag = new u_char;
+            u_char* buf = new u_char[2346];
+
+            while (read(pipefd[0], count, 4)> 0) {
+                read(pipefd[0], wired_flag, 1);
+                if (*wired_flag == '1') set_wired(true);
+                read(pipefd[0], caplen, 4);
+                read(pipefd[0], buf, *caplen);
+                got_packet(*count, buf);
+            }
+            close(pipefd[0]);
+            delete wired_flag, caplen;
+            delete[] buf;
+            exit(EXIT_SUCCESS);
+        }
+        else {							/* Parent writes argv[1] to pipe */
+            close(pipefd[0]);			/* Close unused read end */
+        }
+    }
+    do_capture();
+    for (int i = 0; i < NUM_CHILDREN; i++)
+    {
+		close(writefd[i]);
+    }
 }

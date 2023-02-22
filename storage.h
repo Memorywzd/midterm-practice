@@ -2,7 +2,7 @@
 
 #include <pcap.h>
 
-/* ÒÔÌ«Íø¿¨²âÊÔÓÃ */
+/* ä»¥å¤ªç½‘å¡æµ‹è¯•ç”¨ */
 // ethernet headers are always exactly 14 bytes [1]
 #define SIZE_ETHERNET 14
 
@@ -16,14 +16,14 @@ struct sniff_ethernet {
 	u_short ether_type;                     // IP? ARP? RARP? etc
 };
 
-/* ***Test required*** WIFI 802.11 Í·²¿¶¨Òå */
-// ²»¿¼ÂÇ·Ö²¼Ê½ap¡¢¼òµ¥padµÄ802.11±ê×¼Ê¡ÊÂ´¦ÀíÈçÏÂ
-#define SIZE_80211_HEADER 24
+/* ***Test required*** WIFI 802.11 å¤´éƒ¨å®šä¹‰ */
+// ä¸è€ƒè™‘åˆ†å¸ƒå¼apã€ç®€å•padçš„802.11æ ‡å‡†çœäº‹å¤„ç†å¦‚ä¸‹
+#define SIZE_80211_HEADER 26     //24: non qos header
 #define SIZE_LLC_HEADER 8
-#define SIZE_RADIOTAP_HEADER 18
-/* monitor modeÍø¿¨ÓĞÈıÖÖ¹¤×÷Ä£Ê½£¬°üº¬À´×ÔÄÚºËµÄ²»Í¬¸½¼ÓĞÅÏ¢ */
+#define SIZE_RADIOTAP_HEADER  21 //18: non imformation header
+/* monitor modeç½‘å¡æœ‰ä¸‰ç§å·¥ä½œæ¨¡å¼ï¼ŒåŒ…å«æ¥è‡ªå†…æ ¸çš„ä¸åŒé™„åŠ ä¿¡æ¯ */
 //Libpcap link type:  DLT_IEEE802_11_RADIO
-//radiotap header ³¤¶ÈÓÉit_lenÖ¸Ê¾
+//radiotap header é•¿åº¦ç”±it_lenæŒ‡ç¤º
 struct radiotap_header {
 	u_int8_t it_version;     /* set to 0 */
 	u_int8_t it_pad;
@@ -155,12 +155,12 @@ struct sniff_tcp {
 };
 
 //TODO
-// Á¬½ÓÊı¾İ¿â¡¢½«Êı¾İ°ü´æÈëÎÄ¼ş
+// è¿æ¥æ•°æ®åº“ã€å°†æ•°æ®åŒ…å­˜å…¥æ–‡ä»¶
 //Save HTTP Payload
 
 void set_wired(bool);
 
-void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* packet);
+void got_packet(int count, const u_char* packet);
 
 void print_payload(const u_char* payload, int len);
 

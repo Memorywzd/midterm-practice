@@ -2,10 +2,12 @@
 
 #include "storage.h"
 
+#define NUM_CHILDREN 5
+
 void set_num(int num);
 void set_exp(char* exp);
 void set_device(char* device);
 
-void do_capture();
+void dispatch();
 
 void ctrl_c(int);

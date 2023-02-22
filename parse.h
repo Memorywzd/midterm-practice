@@ -165,7 +165,7 @@ struct sniff_http_response
     //char* content;
 };
 
-void parse_http_payload(char* payload, int len);
+void parse_http_payload(u_char* origin_payload, int len);
 
 char* ret_first_line(char* payload);
 char* ret_info(char* keyword, char* payload);

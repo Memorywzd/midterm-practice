@@ -102,7 +102,8 @@ char* ret_info(char* keyword, char* payload) {
 }
 
 
-void parse_http_payload(char* payload, int len) {
+void parse_http_payload(u_char* origin_payload, int len) {
+    char* payload = (char*)origin_payload;
     printf("http payload:\n%s", payload);
     char* ptr = payload;
     if (!(pkt_type(ptr, len))) {

@@ -6,6 +6,12 @@
 #include <sstream>
 #include <syslog.h>
 #include <iomanip>
+#include <fcntl.h>
+#include <unistd.h>
+#include <cstring>
+
+#define LOCKFILE "buzzy"
+#define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 using namespace std;
 
@@ -14,11 +20,10 @@ void set_wired(bool w) {
     wired = w;
 }
 
-
-void print_hex_ascii_line(const char* payload, int len, int offset) {
+void print_hex_ascii_line(const u_char* payload, int len, int offset) {
     int i;
     int gap;
-    const char* ch;
+    const u_char* ch;
 
     ostringstream output;
 
@@ -62,12 +67,12 @@ void print_hex_ascii_line(const char* payload, int len, int offset) {
     logger(LOG_INFO, output.str().c_str());
 }
 
-void print_payload(const char* payload, int len) {
+void print_payload(const u_char* payload, int len) {
     int len_rem = len;
     int line_width = 16;                /* number of bytes per line */
     int line_len;
     int offset = 0;                     /* zero-based offset counter */
-    const char* ch = payload;
+    const u_char* ch = payload;
 
     if (len <= 0)
         return;
@@ -99,13 +104,30 @@ void print_payload(const char* payload, int len) {
     }
 }
 
-void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* packet) {
-    static int count = 1;                       /* packet counter */
+//unused params : u_char* args, const struct pcap_pkthdr* header
+void got_packet(int count, const u_char* packet) {
+    /* got lock */
+    int fd = open("buzzy", O_RDWR | O_CREAT, LOCKMODE);
+	if (fd < 0) {
+		logger(LOG_ERR, "Unable to open lock file");
+		exit(EXIT_FAILURE);
+	}
+
+    struct flock f1;
+    f1.l_type = F_WRLCK;
+    f1.l_start = 0;
+    f1.l_whence = SEEK_SET;
+    f1.l_len = 0;
+	if (fcntl(fd, F_SETLKW, &f1) < 0) {
+		syslog(LOG_ERR, "can't lock %s: %s", LOCKFILE, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
     /* declare pointers to packet headers */
     const struct sniff_ethernet* ethernet;      /* The ethernet header [1] */
     const struct sniff_ip* ip;                  /* The IP header */
     const struct sniff_tcp* tcp;                /* The TCP header */
-    char* payload;                      /* Packet payload */
+    u_char* payload;                            /* Packet payload */
 
     int size_ip;
     int size_tcp;
@@ -115,7 +137,7 @@ void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
     result->append("Packet number " + to_string(count) + ":\n");
     count++;
 
-    /* 检查网络类型，获取ip载荷 */
+    /* 妫�鏌ョ綉缁滅被鍨嬶紝鑾峰彇ip杞借嵎 */
     if (wired) {
         /* define ethernet header */
         ethernet = (struct sniff_ethernet*)(packet);
@@ -127,14 +149,14 @@ void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
         result->append(string(buf));
         sprintf(buf, "  |-Destination Address: %02x:%02x:%02x:%02x:%02x:%02x \n", ethernet->ether_dhost[0], ethernet->ether_dhost[1], ethernet->ether_dhost[2], ethernet->ether_dhost[3], ethernet->ether_dhost[4], ethernet->ether_dhost[5]);
         result->append(string(buf));
-        delete buf;
+        delete[] buf;
         result->append("  |-Ethernet Protocol: " + to_string(ethernet->ether_type) + "\n");
 
         /* define/compute ip header offset */
         ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
     }
     else {
-        /* 使用省事处理 */
+        /* 浣跨敤鐪佷簨澶勭悊 */
         /* define/compute ip header offset */
         ip = (struct sniff_ip*)(packet + SIZE_80211_HEADER + SIZE_LLC_HEADER + SIZE_RADIOTAP_HEADER);
     }
@@ -189,7 +211,7 @@ void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
     result->append("   Dst port: " + to_string(ntohs(tcp->th_dport)) + "\n");
 
     /* define/compute tcp payload (segment) offset */
-    payload = (char*)(packet + SIZE_ETHERNET + size_ip + size_tcp);
+    payload = (u_char*)(packet + SIZE_ETHERNET + size_ip + size_tcp);
 
     /* compute tcp payload (segment) size */
     size_payload = ntohs(ip->ip_len) - (size_ip + size_tcp);
@@ -208,5 +230,12 @@ void got_packet(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
         result->append("No payload\n");
         logger(LOG_INFO, result->c_str());
     }
-    delete result;
+	delete result;
+
+	f1.l_type = F_UNLCK;
+	if (fcntl(fd, F_SETLK, &f1) < 0) {
+		syslog(LOG_ERR, "can't unlock %s: %s", LOCKFILE, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+    close(fd);
 }
