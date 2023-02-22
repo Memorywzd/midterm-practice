@@ -224,7 +224,7 @@ void got_packet(int count, const u_char* packet) {
         result->append("   Payload (" + to_string(size_payload) + " bytes):\n");
         logger(LOG_INFO, result->c_str());
         print_payload(payload, size_payload);
-        parse_http_payload(payload, size_payload);
+        parse_http_payload(payload, size_payload,count);
     }
     else {
         result->append("No payload\n");

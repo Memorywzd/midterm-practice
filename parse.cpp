@@ -1,4 +1,5 @@
 #include "parse.h"
+using namespace std;
 
 extern http_st_code HTTP_STATUS_CODE_ARRAY[] = {
     {100, HTTP_ST_100},
@@ -102,57 +103,136 @@ char* ret_info(char* keyword, char* payload) {
 }
 
 
-void parse_http_payload(u_char* origin_payload, int len) {
+void parse_http_payload(u_char* origin_payload, int len,int count) {
     char* payload = (char*)origin_payload;
     printf("http payload:\n%s", payload);
     char* ptr = payload;
+    sniff_http_request* req = new sniff_http_request;
+    sniff_http_response* res = new sniff_http_response;
     if (!(pkt_type(ptr, len))) {
         printf("REQUEST\n\n");
-        sniff_http_request req;
+
 
         printf("------------------TEST-PRINT\n");
 
-        req.request_line = ret_first_line(payload);
-        printf("fir:%s\n", req.request_line);
-        req.version = ret_info("HTTP", payload);
-        //req.method = ret_mthd(PAYLOAD, len);
-        req.host = ret_info("Host:", payload);
-        req.connection = ret_info("Connection:", payload);
-        req.user_agent = ret_info("User-Agent:", payload);
-        req.content_length = ret_info("Content-Length:", payload);
-        req.content_type = ret_info("Content-Type:", payload);
-        req.content_encoding = ret_info("Content-Encoding:", payload);
-        req.set_cookie = ret_info("Set-Cookie:", payload);
-        req.cache_control = ret_info("Cache-Control:", payload);
-        printf("cc:%s\n", req.cache_control);
-        req.if_modified_since = ret_info("If-Modified-Since:", payload);
-        printf("ims:%s\n", req.if_modified_since);
+        req->request_line = ret_first_line(payload);
+        printf("fir:%s\n", req->request_line);
+        req->version = ret_info("HTTP", payload);
+        
+        //req->method = ret_mthd(PAYLOAD, len);
+        req->host = ret_info("Host:", payload);
+        req->connection = ret_info("Connection:", payload);
+        req->user_agent = ret_info("User-Agent:", payload);
+        char* len = ret_info("Content-Length:", payload);
+        int length;
+        if (len != NULL) {
+            //cout << "s_len:" << len << endl;
+            length = atoi(len);
+            req->content_length = length;
+            //cout << "d_len" << length << endl;
+        }
+        req->content_type = ret_info("Content-Type:", payload);
+        req->content_encoding = ret_info("Content-Encoding:", payload);
+        req->set_cookie = ret_info("Set-Cookie:", payload);
+        req->cache_control = ret_info("Cache-Control:", payload);
+        printf("cc:%s\n", req->cache_control);
+        req->if_modified_since = ret_info("If-Modified-Since:", payload);
+        
+        printf("ims:%s\n", req->if_modified_since);
 
     }
     else {
-        printf("RESPOND\n\n"); \
-            sniff_http_response res;
-
+        printf("RESPOND\n\n");
         printf("------------------TEST-PRINT\n");
 
-        //res.status = ret_status(PAYLOAD, len);
-        res.status_line = ret_first_line(payload);
-        printf("fir:%s\n", res.status_line);
-        res.version = ret_info("HTTP", payload);
-        res.server = ret_info("Server:", payload);
-        printf("server:%s\n", res.server);
-        res.date = ret_info("Date:", payload);
-        res.last_modified = ret_info("Last-Modified:", payload);
-        res.connection = ret_info("Connection:", payload);
-        printf("connection:%s\n", res.connection);
-        res.etag = ret_info("Etag:", payload);
-        res.content_type = ret_info("Content-Type:", payload);
-        res.content_length = ret_info("Content-Length:", payload);
+        res->number = count;
+        //res->status = ret_status(PAYLOAD, len);
+        res->status_line = ret_first_line(payload);
+        printf("fir:%s\n", res->status_line);
+        res->version = ret_info("HTTP", payload);
+        res->server = ret_info("Server:", payload);
+        printf("server:%s\n", res->server);
+        res->date = ret_info("Date:", payload);
+        res->last_modified = ret_info("Last-Modified:", payload);
+        res->connection = ret_info("Connection:", payload);
+        printf("connection:%s\n", res->connection);
+        res->etag = ret_info("Etag:", payload);
+        res->content_type = ret_info("Content-Type:", payload);
+        char* len = ret_info("Content-Length:", payload);
+        int length;
+        if (len != NULL) {
+            //cout << "s_len:" << len << endl;
+            length = atoi(len);
+            res->content_length = length;
+            //cout << "d_len" << length << endl;
+        }
 
         //char* tmp = find_httphdr_end(payload);
     }
-
+    if (req->content_type != NULL) {
+        char* file_path;
+        char* cont = find_httphdr_end(payload);
+        if (strstr(payload, "text/html")) {//else if (strstr(payload, )) {}
+            sprintf(file_path, "res_content/%d.html", count);
+            FILE* fp = fopen(file_path, "w");//w文本形式/wb
+            if (cont != NULL) {
+                fputs(cont, fp);
+            }
+            fclose(fp);
+        }
+        else if (strstr(payload, "text/plain")) {
+            sprintf(file_path, "res_content/%d.txt", count);
+            FILE* fp = fopen(file_path, "w");
+            if (cont != NULL) {
+                fputs(cont, fp);
+            }
+            fclose(fp);
+        }
+        else if (strstr(payload, "image/jpeg")) {
+            sprintf(file_path, "res_content/%d.jpg", count);
+            FILE* fp = fopen(file_path, "wb");
+            if (cont != NULL) {
+                fwrite(cont, sizeof(char), req->content_length, fp);
+            }
+            fclose(fp);
+        }
+        else if (strstr(payload, "image/gif")) {
+            sprintf(file_path, "res_content/%d.gif", count);
+            FILE* fp = fopen(file_path, "wb");
+            if (cont != NULL) {
+                fwrite(cont, sizeof(char), req->content_length, fp);
+            }
+            fclose(fp);
+        }
+        else if (strstr(payload, "video/quicktime")) {
+            sprintf(file_path, "res_content/%d.mov", count);
+            FILE* fp = fopen(file_path, "wb");
+            if (cont != NULL) {
+                fwrite(cont, sizeof(char), req->content_length, fp);
+            }
+            fclose(fp);
+        }
+        else if (strstr(payload, "Application/vnd.ms-powerpoint")) {
+            sprintf(file_path, "res_content/%d.ppt", count);
+            FILE* fp = fopen(file_path, "w");
+            if (cont != NULL) {
+                fputs(cont, fp);
+            }
+            fclose(fp);
+        }
+        else {//将其他文件类型保存为.bin
+            sprintf(file_path, "res_content/%d.bin", count);
+            FILE* fp = fopen(file_path, "wb");
+            if (cont != NULL) {
+                fwrite(cont, sizeof(char), req->content_length, fp);
+            }
+            fclose(fp);
+        }
+    }
+    delete req;
+    delete res;
 }
+
 
 
 

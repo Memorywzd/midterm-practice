@@ -140,7 +140,7 @@ struct sniff_http_request
     char* host;
     char* connection;
     char* user_agent;
-    char* content_length;
+    int content_length;
     char* content_type;
     char* content_encoding;
     char* set_cookie;
@@ -161,11 +161,11 @@ struct sniff_http_response
     char* connection;
     char* etag;
     char* content_type;
-    char* content_length;
+    int content_length;
     //char* content;
 };
 
-void parse_http_payload(u_char* origin_payload, int len);
+void parse_http_payload(u_char* origin_payload, int len,int count);
 
 char* ret_first_line(char* payload);
 char* ret_info(char* keyword, char* payload);
