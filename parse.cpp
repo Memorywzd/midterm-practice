@@ -107,6 +107,7 @@ void parse_http_payload(u_char* origin_payload, int len,int count) {
     char* payload = (char*)origin_payload;
     printf("http payload:\n%s", payload);
     char* ptr = payload;
+
     sniff_http_request* req = new sniff_http_request;
     sniff_http_response* res = new sniff_http_response;
     if (!(pkt_type(ptr, len))) {
@@ -115,6 +116,7 @@ void parse_http_payload(u_char* origin_payload, int len,int count) {
 
         printf("------------------TEST-PRINT\n");
 
+        req->number = count;
         req->request_line = ret_first_line(payload);
         printf("fir:%s\n", req->request_line);
         req->version = ret_info("HTTP", payload);
@@ -137,8 +139,13 @@ void parse_http_payload(u_char* origin_payload, int len,int count) {
         req->cache_control = ret_info("Cache-Control:", payload);
         printf("cc:%s\n", req->cache_control);
         req->if_modified_since = ret_info("If-Modified-Since:", payload);
-        
         printf("ims:%s\n", req->if_modified_since);
+
+        char query[8192];
+        sprintf(query, "INSERT INTO sniff_http_request values(%d,'%s','%s','%s','%s','%s',%d,'%s','%s','%s','%s')", count, 
+            req->request_line, req->version, req->host, req->connection, req->user_agent,
+            req->content_length, req->content_type, req->content_encoding, req->set_cookie, req->cache_control);
+        mysql_query(mysql, query);
 
     }
     else {
@@ -167,7 +174,12 @@ void parse_http_payload(u_char* origin_payload, int len,int count) {
             //cout << "d_len" << length << endl;
         }
 
-        //char* tmp = find_httphdr_end(payload);
+        char query[8192];
+        sprintf(query, "INSERT INTO sniff_http_response values(%d,'%s','%s','%s','%s','%s','%s','%s','%s',%d)", count,
+            res->status_line, res->version, res->server, res->date, res->last_modified,
+            res->connection, res->etag, res->content_type, res->content_length);
+        mysql_query(mysql, query);
+
     }
     if (req->content_type != NULL) {
         char* file_path;
@@ -212,7 +224,7 @@ void parse_http_payload(u_char* origin_payload, int len,int count) {
             }
             fclose(fp);
         }
-        else if (strstr(payload, "Application/vnd.ms-powerpoint")) {
+        else if (strstr(payload, "Applicationvnd.ms-powerpoint")) {
             sprintf(file_path, "res_content/%d.ppt", count);
             FILE* fp = fopen(file_path, "w");
             if (cont != NULL) {

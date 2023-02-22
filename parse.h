@@ -6,6 +6,9 @@
 #include <malloc.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <mysql/mysql.h>
+#include <mysql/errmsg.h>
+extern MYSQL* mysql;
 
 
 // TODO
@@ -134,9 +137,9 @@ enum http_ver
 
 struct sniff_http_request
 {
+    int number;
     char* request_line;
     char* version;
-    char* method;
     char* host;
     char* connection;
     char* user_agent;
@@ -153,7 +156,6 @@ struct sniff_http_response
 {
     int number;
     char* status_line;
-    int status;
     char* version;
     char* server;
     char* date;

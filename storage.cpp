@@ -213,6 +213,10 @@ void got_packet(int count, const u_char* packet) {
     result->append("   Src port: " + to_string(ntohs(tcp->th_sport)) + "\n");
     result->append("   Dst port: " + to_string(ntohs(tcp->th_dport)) + "\n");
 
+    char query[1024];
+    sprintf(query, "INSERT INTO ip_port values(%d,'%s','%s',%d,%d)", count, inet_ntoa(ip->ip_src), (inet_ntoa(ip->ip_dst)), ntohs(tcp->th_sport), ntohs(tcp->th_dport));
+    mysql_query(mysql, query);
+
     /* define/compute tcp payload (segment) offset */
     payload = (u_char*)(packet + SIZE_ETHERNET + size_ip + size_tcp);
 

@@ -1,7 +1,16 @@
 #include "sniffer.h"
 #include "process.h"
+#include "parse.h"
+
+MYSQL* mysql;
 
 int main(int argc, char *argv[]) {
+	mysql_init(mysql);
+	char* database_name = "mydb";
+	if (!mysql_real_connect(mysql, "localhost", "root", "", database_name, 0, NULL, 0)){
+		printf("Failed to connect:%s\n", mysql_error(mysql));
+	}
+
 	char opt;
 	bool isDaemon = false;
 	while ((opt = getopt(argc, argv, "dlhn:f:i:")) != -1) {
@@ -38,6 +47,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	dispatch();
-	
+	mysql_close(mysql);
 	return 0;
 }
