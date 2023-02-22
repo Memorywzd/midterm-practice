@@ -41,16 +41,36 @@
 - 选用vue或react
 - 参照api doc编写，对api提出需求<br>
     /analyse/requestFeature (请求报文的特征)<br>
+      id 角色id
+      host(展示另一个页面)host
     /analyse/requestType (访问类型 - 饼图)<br>
+      id 角色id
     /analyse/responseFeature(响应报文的特征)<br>
+      id 角色id
+      content-type(展示另一个页面)
     /analyse/responseType(载荷类型 - 饼图)<br>
+      id 角色id
     /analyse/sendHttp(发送http数量)<br>
+      id 角色id
     /analyse/receiveHttp(接收http数量)<br>
+      id 角色id
     /analyse/requestLength(请求报文的帧长)<br>
+      id 角色id
     /analyse/responseLength(响应报文的帧长)<br>
+      id 角色id
+
     <br>
     /whois/hostInterest(请求报文的host兴趣)<br>
-    /whois/htmlTxt(网页内容性质)<br>
+      id 角色id
+      requestId 请求报文id
+    /whois/htmlTxt(关键字搜索出网页内容性质)<br>
+      id 角色id
+      keywords 关键字
+
     /whois/domainType(域名类型)<br>
+      id 角色id
+      domain 域名
+      domaincompany 域名注册公司
+
 - 参照任务书2.4节制作页面
 - 先期完成文档的序言部分
