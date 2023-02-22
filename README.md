@@ -4,7 +4,7 @@
 
 ## 第零部分：前期准备
 
-- IDE：
+- IDE:
   - C/C++ CLion或Visual Studio (Code)，禁止使用dev c，在有条件的情况下建议使用copilot、ChatGPT协助代码编写
   - python PyCharm Pro，注意不要使用无法开发web系统的community版本
   - JavaScript 任意
