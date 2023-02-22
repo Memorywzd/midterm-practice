@@ -2,8 +2,6 @@
 #include "process.h"
 
 int main(int argc, char *argv[]) {
-	signal(SIGINT, ctrl_c);
-	
 	char opt;
 	bool isDaemon = false;
 	while ((opt = getopt(argc, argv, "dlhn:f:i:")) != -1) {

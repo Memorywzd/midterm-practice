@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <cstring>
 
-#define LOCKFILE "buzzy"
+#define LOCKFILE "/var/run/snifferstorage.pid"
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 using namespace std;
@@ -107,7 +107,7 @@ void print_payload(const u_char* payload, int len) {
 //unused params : u_char* args, const struct pcap_pkthdr* header
 void got_packet(int count, const u_char* packet) {
     /* got lock */
-    int fd = open("buzzy", O_RDWR | O_CREAT, LOCKMODE);
+    int fd = open(LOCKFILE, O_RDWR | O_CREAT, LOCKMODE);
 	if (fd < 0) {
 		logger(LOG_ERR, "Unable to open lock file");
 		exit(EXIT_FAILURE);
@@ -122,6 +122,10 @@ void got_packet(int count, const u_char* packet) {
 		syslog(LOG_ERR, "can't lock %s: %s", LOCKFILE, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
+    ftruncate(fd, 0);
+    char buf[16];
+    sprintf(buf, "%ld", (long)getpid());
+    write(fd, buf, strlen(buf) + 1);
 
     /* declare pointers to packet headers */
     const struct sniff_ethernet* ethernet;      /* The ethernet header [1] */
@@ -135,7 +139,6 @@ void got_packet(int count, const u_char* packet) {
 
     string* result = new string("");
     result->append("Packet number " + to_string(count) + ":\n");
-    count++;
 
     /* 检查网络类型，获取ip载荷 */
     if (wired) {

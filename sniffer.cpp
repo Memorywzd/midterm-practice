@@ -5,6 +5,8 @@
 #include <cstring>
 #include <syslog.h>
 #include <unistd.h>
+#include <sys/prctl.h>
+#include <signal.h>
 
 using namespace std;
 
@@ -127,6 +129,7 @@ void ctrl_c(int sig) {
     /* cleanup */
     pcap_freecode(&fp);
     pcap_close(handle);
+    for (int i = 0; i < NUM_CHILDREN; i++)close(writefd[i]);
     exit(0);
 }
 
@@ -149,6 +152,8 @@ void dispatch() {
 
         if (cpid == 0) {				/* Child reads from pipe */
             close(pipefd[1]);			/* Close unused write end */
+            prctl(PR_SET_PDEATHSIG, SIGKILL);
+            
             int* caplen = new int;
             int* count = new int;
 			u_char* wired_flag = new u_char;
@@ -162,7 +167,8 @@ void dispatch() {
                 got_packet(*count, buf);
             }
             close(pipefd[0]);
-            delete wired_flag, caplen;
+            delete wired_flag;
+			delete caplen;
             delete[] buf;
             exit(EXIT_SUCCESS);
         }
@@ -170,9 +176,7 @@ void dispatch() {
             close(pipefd[0]);			/* Close unused read end */
         }
     }
+    signal(SIGINT, ctrl_c);
     do_capture();
-    for (int i = 0; i < NUM_CHILDREN; i++)
-    {
-		close(writefd[i]);
-    }
+    for (int i = 0; i < NUM_CHILDREN; i++)close(writefd[i]);
 }
