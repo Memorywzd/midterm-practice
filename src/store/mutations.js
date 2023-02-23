@@ -22,4 +22,19 @@ export const setToken = (state,token) =>{
         state.token = '';
     }
 }
-
+export const setHost = (state,host) =>{
+    if (host!=null){
+        state.host = host;
+    }
+    else{
+        state.token = '';
+    }
+}
+export const setContent = (state,content) =>{
+    if(content!=null ){
+        state.content_type = content;
+    }else{
+        state.content_type = '';
+        
+    }
+}

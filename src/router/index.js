@@ -21,9 +21,19 @@ const routes = [
     component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
   },
   {
+    path: '/reqdetail',
+    name: 'reqdetail',
+    component: () => import(/* webpackChunkName: "about" */ '../views/reqdetail.vue')
+  },
+  {
     path: '/aboutresp',
     name: 'aboutresp',
     component: () => import(/* webpackChunkName: "about" */ '../views/Aboutresp.vue')
+  },
+  {
+    path: '/respdetail',
+    name: 'respdetail',
+    component: () => import(/* webpackChunkName: "about" */ '../views/respdetail.vue')
   },
   {
     path: '/sendamount',

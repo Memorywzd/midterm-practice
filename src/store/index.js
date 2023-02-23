@@ -13,6 +13,8 @@ export default new Vuex.Store({
     rolename:'',
     islogin:'',
     token:'',
+    host:'',
+    content_type:''
   },
   getters,
   mutations,

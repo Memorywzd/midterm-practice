@@ -5,11 +5,12 @@
     <div class="top">
       <h1>This is an about page</h1>
       <h1>欢迎您{{ this.$store.state.username }}</h1>
+      
     </div>
     <div class='menu'>
       <ul class="nav nav-list">
         <li>
-          <a class="" >
+          <a class="" href="/">
             <i class=""></i>
             <span class="menu-text"> 报文分析 </span>
             <b class=""></b>
@@ -53,7 +54,7 @@
         </li>
 
         <li>
-          <a href="#" class="">
+          <a href="/" class="">
             <i class="icon-list"></i>
             <span class="menu-text"> Whois模块 </span>
 
@@ -144,6 +145,9 @@ export default {
     this.initEcharts();
   },
   methods: {
+    host(e){
+      sessionStorage.setItem("host",e)
+    },
     get() {
       let apiKey = '2WshDvM3a8682c1238af5a34f4eece5319e5a5637618bb7'
       let url = 'http://152.136.185.210:7878/api/hy66/category'

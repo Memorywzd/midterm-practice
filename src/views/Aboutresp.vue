@@ -6,13 +6,16 @@
       <div class="top">
         <h1>This is an about page</h1>
         <h1>欢迎您{{ this.$store.state.username }}</h1>
+        <button @click="contentype">clickme</button>
+        <a href="/respdetail">respdetail</a>
+        
       </div>
       <div class='menu'>
         <ul class="nav nav-list">
           <li>
-            <a  class="" >
+            <a  class="" href="/" >
               <i class=""></i>
-              <span class="menu-text" @click="function(){this.$router.push('/')}"> 报文分析 </span>
+              <span class="menu-text" > 报文分析 </span>
               <b class=""></b>
             </a>
   
@@ -53,7 +56,7 @@
           </li>
   
           <li>
-            <a href="#" class="">
+            <a href="/" class="">
               <i class="icon-list"></i>
               <span class="menu-text"> Whois模块 </span>
   
@@ -91,7 +94,7 @@
       <div>
        
         <div>响应报文的特征</div>
-        
+        <!-- {{data}} -->
         <div class="echart" id="mychart" :style="myChartStyle"></div>
       </div>
     </div>
@@ -138,10 +141,12 @@
         this.isLogin();
         this.ver();
         this.get();
+        
       },
     mounted() {
       this.initDate(); //数据初始化
       this.initEcharts();
+    
     },
     methods: {
       get() {
@@ -152,6 +157,11 @@
             console.log(res);
             this.data = res.data;
           })
+        },
+        contentype(e){
+          console.log('13')
+          // this.$store.commit("setContent",'13453');
+          sessionStorage.setItem("content_type",e)
         },
         isLogin(){
               if(sessionStorage.getItem('user')!=null && sessionStorage.getItem('userToken')){

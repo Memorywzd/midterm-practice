@@ -7,7 +7,7 @@
       <div class='menu'>
         <ul class="nav nav-list">
           <li>
-            <a  class="" >
+            <a  class="" href="/">
               <i class=""></i>
               <span class="menu-text" @click="function(){this.$router.push('/')}"> 报文分析 </span>
               <b class=""></b>
@@ -50,7 +50,7 @@
           </li>
   
           <li>
-            <a href="#" class="">
+            <a href="/" class="">
               <i class="icon-list"></i>
               <span class="menu-text"> Whois模块 </span>
   

@@ -5,4 +5,9 @@ export const setUser = ({commit},user) => {
 export const setToken = ({commit},token) =>{
     commit("setToken",token);
 }
-
+export const setHost = ({commit},host) =>{
+    commit("setHost",host)
+}
+export const setContent = ({commit},content)=>{
+    commit("setContent",content)
+}
