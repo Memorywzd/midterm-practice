@@ -18,9 +18,9 @@ struct sniff_ethernet {
 
 /* ***Test required*** WIFI 802.11 头部定义 */
 // 不考虑分布式ap、简单pad的802.11标准省事处理如下
+#define SIZE_RADIOTAP_HEADER  21 //18: non imformation header
 #define SIZE_80211_HEADER 26     //24: non qos header
 #define SIZE_LLC_HEADER 8
-#define SIZE_RADIOTAP_HEADER  21 //18: non imformation header
 /* monitor mode网卡有三种工作模式，包含来自内核的不同附加信息 */
 //Libpcap link type:  DLT_IEEE802_11_RADIO
 //radiotap header 长度由it_len指示
@@ -79,7 +79,11 @@ struct avs_header {
 
 //wifi 802.11 header  ***Test required***
 struct sniff_wlan {
-	u_int16_t frame_control;
+	//u_int16_t frame_control;
+	struct {
+		u_char stv;
+		u_char flags;
+	} __attribute__((packed))fr;
 	u_int16_t duration_id;
 	u_char addr1[6];
 	u_char addr2[6];
@@ -111,7 +115,7 @@ struct sniff_llc {
 
 // IP header
 struct sniff_ip {
-	u_char ip_vhl;                          // version << 4 | header length >> 2
+	u_char ip_vhl;                          // version << 4 | header length >> 20
 	u_char ip_tos;                          // type of service
 	u_short ip_len;                         // total length
 	u_short ip_id;                          // identification
@@ -165,5 +169,3 @@ void got_packet(int count, const u_char* packet);
 void print_payload(const u_char* payload, int len);
 
 void print_hex_ascii_line(const u_char* payload, int len, int offset);
-
-void save_http_payload(const u_char* payload, int len);

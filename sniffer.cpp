@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <sstream>
 #include <syslog.h>
 #include <unistd.h>
 #include <sys/prctl.h>
@@ -11,12 +12,15 @@
 using namespace std;
 
 int pkt_num = -1;
-char* filter_exp = "tcp and port 80";
+char* filter_exp = "ip and tcp and port 80";
 char* dev = nullptr;
+char* filename = nullptr;
 
 pcap_t* handle;                     /* packet capture handle */
 
 struct bpf_program fp;              /* compiled filter program (expression) */
+
+pcap_dumper_t* out_pcap;
 
 int writefd[NUM_CHILDREN];
 
@@ -29,9 +33,16 @@ void set_exp(char* exp) {
 void set_device(char* device) {
 	dev = device;
 }
+void set_filename(char* file) {
+	filename = file;
+}
 
 void write_pipe(u_char* args, const struct pcap_pkthdr* header, const u_char* packet) {
-	int len = header->caplen;
+	if (filename && out_pcap) {
+		pcap_dump((u_char*)out_pcap, header, packet);
+        pcap_dump_flush(out_pcap);
+	}
+    int len = header->caplen;
     static int count = 1;				/* packet counter */
     write(writefd[count % NUM_CHILDREN], &count, 4);
     write(writefd[count % NUM_CHILDREN], args, 1);
@@ -54,14 +65,18 @@ void do_capture() {
         dev = pcap_lookupdev(errbuf);
         //dev = pcap_findalldevs();
         if (dev == nullptr) {
-			logger(LOG_ERR, "Couldn't find default device: " + *errbuf + '\n');
+            ostringstream oss;
+            oss << "Couldn't find default device: " << errbuf << endl;
+            logger(LOG_ERR, oss.str().c_str());
             exit(EXIT_FAILURE);
         }
     }
 
     /* get network number and mask associated with capture device */
     if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) {
-		logger(LOG_ERR, "Couldn't get netmask for device " + *dev + ':' + *errbuf + '\n');
+        ostringstream oss;
+        oss <<"Couldn't get netmask for device "<< errbuf << endl;
+        logger(LOG_ERR, oss.str().c_str());
         net = 0;
         mask = 0;
     }
@@ -69,7 +84,9 @@ void do_capture() {
     /* open capture device */
     handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
     if (handle == nullptr) {
-		logger(LOG_ERR, "Couldn't open device " + *dev + ':' + *errbuf + '\n');
+        ostringstream oss;
+		oss << "Couldn't open device " << dev << ": " << errbuf << endl;
+        logger(LOG_ERR, oss.str().c_str());
         exit(EXIT_FAILURE);
     }
 
@@ -79,10 +96,11 @@ void do_capture() {
 		pcap_datalink(handle) != DLT_IEEE802_11_RADIO &&
 		pcap_datalink(handle) != DLT_PRISM_HEADER &&
 		pcap_datalink(handle) != DLT_IEEE802_11_RADIO_AVS) {
-		logger(LOG_ERR, "%s is neither Ethernet nor Wi-Fi" + *dev + '\n');
+        ostringstream oss;
+        logger(LOG_ERR, oss.str().c_str());
         exit(EXIT_FAILURE);
     }
-	
+
 	/* check whether the connection is wired or wireless  */
 	if (pcap_datalink(handle) == DLT_EN10MB) {
         wired_flag = '1';
@@ -109,16 +127,23 @@ void do_capture() {
 
     /* compile the filter expression */
     if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
-		logger(LOG_ERR, "Couldn't parse filter " + *filter_exp + ':' + *pcap_geterr(handle) + '\n');
-        exit(EXIT_FAILURE);
-    }
+		ostringstream oss;
+		oss << "Couldn't parse filter " << filter_exp << ": " << pcap_geterr(handle) << endl;
+        logger(LOG_ERR, oss.str().c_str());
+		exit(EXIT_FAILURE);
+	}
 
     /* apply the compiled filter */
     if (pcap_setfilter(handle, &fp) == -1) {
-		logger(LOG_ERR, "Couldn't install filter " + *filter_exp + ':' + *pcap_geterr(handle) + '\n');
+		ostringstream oss;
+		oss << "Couldn't install filter " << filter_exp << ": " << pcap_geterr(handle) << endl;
+        logger(LOG_ERR, oss.str().c_str());
         exit(EXIT_FAILURE);
     }
 
+    /* open file to save packet */
+    if (filename)out_pcap = pcap_dump_open(handle, filename);
+	
     /* now we can set our callback function */
     pcap_loop(handle, pkt_num, write_pipe, &wired_flag);
 }
@@ -127,6 +152,7 @@ void ctrl_c(int sig) {
     cout << "\nKeyboard interrupt detected, stop capturing..." << endl;
     pcap_breakloop(handle);
     /* cleanup */
+	if (filename && out_pcap) pcap_dump_close(out_pcap);
     pcap_freecode(&fp);
     pcap_close(handle);
     for (int i = 0; i < NUM_CHILDREN; i++)close(writefd[i]);
@@ -168,6 +194,7 @@ void dispatch() {
             }
             close(pipefd[0]);
             delete wired_flag;
+			delete count;
 			delete caplen;
             delete[] buf;
             exit(EXIT_SUCCESS);

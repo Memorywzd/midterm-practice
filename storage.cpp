@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstring>
+#include <bitset>
 
 #define LOCKFILE "/var/run/snifferstorage.pid"
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
@@ -129,10 +130,13 @@ void got_packet(int count, const u_char* packet) {
 
     /* declare pointers to packet headers */
     const struct sniff_ethernet* ethernet;      /* The ethernet header [1] */
+    const struct radiotap_header* rth;          /* The radiotap header */
     const struct sniff_ip* ip;                  /* The IP header */
     const struct sniff_tcp* tcp;                /* The TCP header */
+    const struct sniff_wlan* wlan;              /* The 802.11 wlan header */
     u_char* payload;                            /* Packet payload */
 
+    int size_frame = 0;
     int size_ip;
     int size_tcp;
     int size_payload;
@@ -157,19 +161,37 @@ void got_packet(int count, const u_char* packet) {
 
         /* define/compute ip header offset */
         ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
+        size_frame += SIZE_ETHERNET;
     }
     else {
-        /* 使用省事处理 */
+		/* 获取radio tap header长度 */
+        rth = (struct radiotap_header*)(packet);
+        int rth_len = rth->it_len;
+		/* 获取802.11 header长度 */
+		wlan = (struct sniff_wlan*)(packet + rth_len);
+        ostringstream oss;
+        oss << bitset<8>(wlan->fr.stv);
+        string subtype = oss.str().substr(0, 4);
+        int wlan_len = 26;
+        if (subtype == "0000")wlan_len = 24;
+		
         /* define/compute ip header offset */
-        ip = (struct sniff_ip*)(packet + SIZE_80211_HEADER + SIZE_LLC_HEADER + SIZE_RADIOTAP_HEADER);
+        ip = (struct sniff_ip*)(packet + rth_len + wlan_len + SIZE_LLC_HEADER);
+		size_frame += rth_len + wlan_len + SIZE_LLC_HEADER;
     }
-
+	
     size_ip = IP_HL(ip) * 4;
+    int v_ip = IP_V(ip);
     if (size_ip < 20) {
         result->append("   * Invalid IP header length: " + to_string(size_ip) + " bytes\n");
         logger(LOG_INFO, result->c_str());
         return;
     }
+    if (v_ip != 4) {
+		result->append("   * Invalid IP version: " + to_string(v_ip) + "\n");
+		logger(LOG_INFO, result->c_str());
+		return;
+	}
 
     /* print source and destination IP addresses */
     result->append("       From: " + string(inet_ntoa(ip->ip_src)) + '\n');
@@ -197,32 +219,33 @@ void got_packet(int count, const u_char* packet) {
         logger(LOG_INFO, result->c_str());
         return;
     }
-
+    
     /*
      *  OK, this packet is TCP.
      */
 
      /* define/compute tcp header offset */
-    tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
+    tcp = (struct sniff_tcp*)(packet + size_frame + size_ip);
     size_tcp = TH_OFF(tcp) * 4;
     if (size_tcp < 20) {
         result->append("   * Invalid TCP header length: " + to_string(size_tcp) + " bytes\n");
+		logger(LOG_INFO, result->c_str());
         return;
     }
 
     result->append("   Src port: " + to_string(ntohs(tcp->th_sport)) + "\n");
     result->append("   Dst port: " + to_string(ntohs(tcp->th_dport)) + "\n");
-
+    
     char query[1024];
     sprintf(query, "INSERT INTO ip_port values(%d,'%s','%s',%d,%d)", count, inet_ntoa(ip->ip_src), (inet_ntoa(ip->ip_dst)), ntohs(tcp->th_sport), ntohs(tcp->th_dport));
     mysql_query(mysql, query);
 
     /* define/compute tcp payload (segment) offset */
-    payload = (u_char*)(packet + SIZE_ETHERNET + size_ip + size_tcp);
+    payload = (u_char*)(packet + size_frame + size_ip + size_tcp);
 
     /* compute tcp payload (segment) size */
     size_payload = ntohs(ip->ip_len) - (size_ip + size_tcp);
-
+	
     /*
      * Print payload data; it might be binary, so don't just
      * treat it as a string.
@@ -238,7 +261,7 @@ void got_packet(int count, const u_char* packet) {
         logger(LOG_INFO, result->c_str());
     }
 	delete result;
-
+    /**/
 	f1.l_type = F_UNLCK;
 	if (fcntl(fd, F_SETLK, &f1) < 0) {
 		syslog(LOG_ERR, "can't unlock %s: %s", LOCKFILE, strerror(errno));

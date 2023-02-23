@@ -27,7 +27,8 @@ void help(char* name) {
 		cout << "  -n <number>     Number of packets to capture." << endl;
 		cout << "  -f <expression> Capture only packets that satisfy the filter <expression>." << endl;
 		cout << "  -i <interface>  Listen on <interface> for packets." << endl;
-		cout << "  -d              Capture packets on daemon mod." << endl;
+		cout << "  -w <name>       Save captured packet to file <name>." << endl;
+		cout << "  -d              Run as a daemon." << endl;
 		cout << "  -l              List all network interfaces." << endl;
 		cout << "  -h              Print this help message." << endl;
 		cout << "By default, the program will capture HTTP packets from the first available interface." << endl;

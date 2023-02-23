@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 
 	char opt;
 	bool isDaemon = false;
-	while ((opt = getopt(argc, argv, "dlhn:f:i:")) != -1) {
+	while ((opt = getopt(argc, argv, "dlhn:f:i:w:")) != -1) {
 		switch (opt) {
 		case 'd':
 			isDaemon = true;
@@ -32,6 +32,9 @@ int main(int argc, char *argv[]) {
 			break;
 		case 'i':
 			set_device(optarg);
+			break;
+		case 'w':
+			set_filename(optarg);
 			break;
 		default:
 			help(argv[0]);

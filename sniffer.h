@@ -7,6 +7,7 @@
 void set_num(int num);
 void set_exp(char* exp);
 void set_device(char* device);
+void set_filename(char* file);
 
 void dispatch();
 
