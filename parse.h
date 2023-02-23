@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <mysql/mysql.h>
 #include <mysql/errmsg.h>
-extern MYSQL* mysql;
+extern MYSQL mysql;
 
 
 // TODO
@@ -139,32 +139,26 @@ struct sniff_http_request
 {
     int number;
     char* request_line;
-    char* version;
     char* host;
-    char* connection;
+    char* request_uri;
     char* user_agent;
+    char* cookie;
     int content_length;
     char* content_type;
-    char* content_encoding;
-    char* set_cookie;
-    char* cache_control;
-    char* if_modified_since;
-    //char* content;
+    char* connection;
 };
 
 struct sniff_http_response
 {
     int number;
     char* status_line;
-    char* version;
     char* server;
-    char* date;
-    char* last_modified;
-    char* connection;
-    char* etag;
-    char* content_type;
     int content_length;
-    //char* content;
+    char* content_type;
+    char* content_encoding;
+    char* set_cookie;
+    char* cache_control;
+    char* if_modified_since;
 };
 
 void parse_http_payload(u_char* origin_payload, int len,int count);

@@ -62,6 +62,194 @@ char* ret_mthd(const char* line, int linelen) {
     return method;
 }
 
+char* ret_mthd2(const char* data, int linelen) {
+    const char* ptr;
+    int	index = 0;
+    int prefix_len = 0;
+    char* unkn;
+
+    if (linelen >= 2) {
+        if (strncmp(data, "M-", 2) == 0 || strncmp(data, "\r\n", 2) == 0) { /* \r\n necesary for bug in client POST */
+            data += 2;
+            linelen -= 2;
+            prefix_len = 2;
+        }
+    }
+
+    ptr = (const char*)data;
+    /* Look for the space following the Method */
+    while (index < linelen) {
+        if (*ptr == ' ')
+            break;
+        else {
+            ptr++;
+            index++;
+        }
+    }
+
+    /* Check the methods that have same length */
+    switch (index) {
+    case 3:
+        if (strncmp(data, "GET", index) == 0) {
+            return "GET";
+        }
+        else if (strncmp(data, "PUT", index) == 0) {
+            return "PUT";
+        }
+#if 0
+        else if (strncmp(data, "ICY", index) == 0) {
+            return "ICY";
+        }
+#endif
+        break;
+
+    case 4:
+        if (strncmp(data, "COPY", index) == 0) {
+            return "COPY";
+        }
+        else if (strncmp(data, "HEAD", index) == 0) {
+            return "HEAD" ;
+        }
+        else if (strncmp(data, "LOCK", index) == 0) {
+            return "LOCK";
+        }
+        else if (strncmp(data, "MOVE", index) == 0) {
+            return "MOVE";
+        }
+        else if (strncmp(data, "POLL", index) == 0) {
+            return "POLL";
+        }
+        else if (strncmp(data, "POST", index) == 0) {
+            return "POST";
+        }
+        break;
+
+    case 5:
+        if (strncmp(data, "BCOPY", index) == 0) {
+            return "BCOPY";
+        }
+        else if (strncmp(data, "BMOVE", index) == 0) {
+            return "BMOVE";
+        }
+        else if (strncmp(data, "MKCOL", index) == 0) {
+            return "MKCOL";
+        }
+        else if (strncmp(data, "TRACE", index) == 0) {
+            return "TRACE";
+        }
+        else if (strncmp(data, "LABEL", index) == 0) {  /* RFC 3253 8.2 */
+            return "LABEL";
+        }
+        else if (strncmp(data, "MERGE", index) == 0) {  /* RFC 3253 11.2 */
+            return "MERGE";
+        }
+        break;
+
+    case 6:
+        if (strncmp(data, "DELETE", index) == 0) {
+            return "DELETE";
+        }
+        else if (strncmp(data, "SEARCH", index) == 0) {
+            return "SEARCH";
+        }
+        else if (strncmp(data, "UNLOCK", index) == 0) {
+            return "UNLOCK";
+        }
+        else if (strncmp(data, "REPORT", index) == 0) {  /* RFC 3253 3.6 */
+            return "REPORT";
+        }
+        else if (strncmp(data, "UPDATE", index) == 0) {  /* RFC 3253 7.1 */
+            return "UPDATE";
+        }
+        else if (strncmp(data, "NOTIFY", index) == 0) {
+            return "NOTIFY";
+        }
+        break;
+
+    case 7:
+        if (strncmp(data, "BDELETE", index) == 0) {
+            return "BDELETE";
+        }
+        else if (strncmp(data, "CONNECT", index) == 0) {
+            return "CONNECT";
+        }
+        else if (strncmp(data, "OPTIONS", index) == 0) {
+            return "OPTIONS";
+        }
+        else if (strncmp(data, "CHECKIN", index) == 0) {  /* RFC 3253 4.4, 9.4 */
+            return "CHECKIN";
+        }
+        break;
+
+    case 8:
+        if (strncmp(data, "PROPFIND", index) == 0) {
+            return "PROPFIND";
+        }
+        else if (strncmp(data, "CHECKOUT", index) == 0) { /* RFC 3253 4.3, 9.3 */
+            return "CHECKOUT";
+        }
+        /*
+        else if (strncmp(data, "CCM_POST", index) == 0) {
+            return HTTP_MT_CCM_POST;
+        }
+        */
+        break;
+
+    case 9:
+        if (strncmp(data, "SUBSCRIBE", index) == 0) {
+            return "SUBSCRIBE";
+        }
+        else if (strncmp(data, "PROPPATCH", index) == 0) {
+            return "PROPPATCH";
+        }
+        else  if (strncmp(data, "BPROPFIND", index) == 0) {
+            return "BPROPFIND";
+        }
+        break;
+
+    case 10:
+        if (strncmp(data, "BPROPPATCH", index) == 0) {
+            return "BPROPPATCH";
+        }
+        else if (strncmp(data, "UNCHECKOUT", index) == 0) {  /* RFC 3253 4.5 */
+            return "UNCHECKOUT";
+        }
+        else if (strncmp(data, "MKACTIVITY", index) == 0) {  /* RFC 3253 13.5 */
+            return "MKACTIVITY";
+        }
+        break;
+
+    case 11:
+        if (strncmp(data, "MKWORKSPACE", index) == 0) {  /* RFC 3253 6.3 */
+            return "MKWORKSPACE";
+        }
+        else if (strncmp(data, "UNSUBSCRIBE", index) == 0) {
+            return "UNSUBSCRIBE";
+        }
+        /*
+        else if (strncmp(data, "RPC_CONNECT", index) == 0) {
+            return HTTP_MT_RPC_CONNECT;
+        }
+        */
+        break;
+
+    case 15:
+        if (strncmp(data, "VERSION-CONTROL", index) == 0) {  /* RFC 3253 3.5 */
+            return  "VERSION-CONTROL";
+        }
+        break;
+
+    case 16:
+        if (strncmp(data, "BASELINE-CONTROL", index) == 0) {  /* RFC 3253 12.6 */
+            return "BASELINE-CONTROL";
+        }
+        break;
+
+    default:
+        break;
+        }
+}
+
 int ret_status(const char* line, int len) {
     http_status sta = http_response_status(line, len);
     int i, dim = sizeof(HTTP_STATUS_CODE_ARRAY) / sizeof(http_st_code);
@@ -102,8 +290,21 @@ char* ret_info(char* keyword, char* payload) {
     return NULL;
 }
 
+char* ret_host_uri(char* payload, int linelen,char* host) {
+    char* mthd = ret_mthd2(payload, linelen);
+    char* uri_ver = ret_info(mthd, payload);
+    char* uri = strtok(uri_ver, " ");
+    if (uri != NULL) {
+        strcat(host, uri);
+        return host;
+    }
+    else {
+        return NULL;
+    }
+}
 
-void parse_http_payload(u_char* origin_payload, int len,int count) {
+
+void parse_http_payload(u_char* origin_payload, int len, int count) {
     char* payload = (char*)origin_payload;
     printf("http payload:\n%s", payload);
     char* ptr = payload;
@@ -111,88 +312,105 @@ void parse_http_payload(u_char* origin_payload, int len,int count) {
     sniff_http_request* req = new sniff_http_request;
     sniff_http_response* res = new sniff_http_response;
     if (!(pkt_type(ptr, len))) {
-        printf("REQUEST\n\n");
-
-
-        printf("------------------TEST-PRINT\n");
-
+        //printf("REQUEST\n\n");
+        //printf("------------------TEST-PRINT\n")
         req->number = count;
         req->request_line = ret_first_line(payload);
-        printf("fir:%s\n", req->request_line);
-        req->version = ret_info("HTTP", payload);
-        
-        //req->method = ret_mthd(PAYLOAD, len);
+        //if (req->request_line != NULL) {printf("fir:%s\n", req->request_line);}
+
         req->host = ret_info("Host:", payload);
-        req->connection = ret_info("Connection:", payload);
-        req->user_agent = ret_info("User-Agent:", payload);
-        char* len = ret_info("Content-Length:", payload);
-        int length;
-        if (len != NULL) {
-            //cout << "s_len:" << len << endl;
-            length = atoi(len);
-            req->content_length = length;
-            //cout << "d_len" << length << endl;
+        //cout << "Host:" << req->host << endl;
+        
+        if (req->host != NULL) {
+            req->request_uri = ret_host_uri(payload, len, req->host);
+            //cout << "req->request_uri:" << req->request_uri << endl;
         }
+        req->user_agent = ret_info("User-Agent:", payload);
+        //cout << "req->user_agent:" << req->user_agent << endl;
+        req->cookie = ret_info("Cookie:", payload);
+        // cout << "req->cookie:" << req->cookie << endl;
+
+        char* len = ret_info("Content-Length:", payload);
+        int length=0;
+        if (len != NULL) {
+            length = atoi(len);
+        }
+        req->content_length = length;
+
+
         req->content_type = ret_info("Content-Type:", payload);
-        req->content_encoding = ret_info("Content-Encoding:", payload);
-        req->set_cookie = ret_info("Set-Cookie:", payload);
-        req->cache_control = ret_info("Cache-Control:", payload);
-        printf("cc:%s\n", req->cache_control);
-        req->if_modified_since = ret_info("If-Modified-Since:", payload);
-        printf("ims:%s\n", req->if_modified_since);
+        // cout << " req->content_type:" << req->content_type << endl;
+
+        req->connection = ret_info("Connection:", payload);
+        //cout << "req->connection:" << req->connection << endl;
 
         char query[8192];
-        sprintf(query, "INSERT INTO sniff_http_request values(%d,'%s','%s','%s','%s','%s',%d,'%s','%s','%s','%s')", count, 
-            req->request_line, req->version, req->host, req->connection, req->user_agent,
-            req->content_length, req->content_type, req->content_encoding, req->set_cookie, req->cache_control);
-        mysql_query(mysql, query);
-
+        sprintf(query, "INSERT INTO sniff_http_request values(%d,'%s','%s','%s','%s','%s',%d,'%s','%s')",
+            count, req->request_line, req->host, req->request_uri, req->user_agent, req->cookie,
+            req->content_length, req->content_type, req->connection);
+        //mysql_query(&mysql, query);
+        int n = mysql_real_query(&mysql, query, strlen(query));
+        if (n) {
+            cout << "Failed to insert the request:" << mysql_error(&mysql) << endl;
+        }
+        delete req;
     }
     else {
-        printf("RESPOND\n\n");
-        printf("------------------TEST-PRINT\n");
+        //printf("RESPOND\n\n");
+        //printf("------------------TEST-PRINT\n");
 
         res->number = count;
-        //res->status = ret_status(PAYLOAD, len);
         res->status_line = ret_first_line(payload);
-        printf("fir:%s\n", res->status_line);
-        res->version = ret_info("HTTP", payload);
+        //printf("fir:%s\n", res->status_line);
+
         res->server = ret_info("Server:", payload);
-        printf("server:%s\n", res->server);
-        res->date = ret_info("Date:", payload);
-        res->last_modified = ret_info("Last-Modified:", payload);
-        res->connection = ret_info("Connection:", payload);
-        printf("connection:%s\n", res->connection);
-        res->etag = ret_info("Etag:", payload);
-        res->content_type = ret_info("Content-Type:", payload);
+        //printf("server:%s\n", res->server);
+
         char* len = ret_info("Content-Length:", payload);
-        int length;
+        int length=0;
         if (len != NULL) {
-            //cout << "s_len:" << len << endl;
             length = atoi(len);
-            res->content_length = length;
-            //cout << "d_len" << length << endl;
         }
+        res->content_length = length;
+
+        res->content_type = ret_info("Content-Type:", payload);
+        //cout << "res->content_type:" << res->content_type << endl;
+        res->content_encoding = ret_info("Content-Encoding:", payload);
+        // cout << "res->content_encoding:" << res->content_encoding << endl;
+        res->set_cookie = ret_info("Set-Cookie:", payload);
+        //cout << "res->set_cookie:" << res->set_cookie << endl;
+
+        res->cache_control = ret_info("Cache-Control:", payload);
+        //printf("cc:%s\n", res->cache_control);
+        res->if_modified_since = ret_info("If-Modified-Since:", payload);
+        //printf("ims:%s\n", res->if_modified_since);
+
 
         char query[8192];
-        sprintf(query, "INSERT INTO sniff_http_response values(%d,'%s','%s','%s','%s','%s','%s','%s','%s',%d)", count,
-            res->status_line, res->version, res->server, res->date, res->last_modified,
-            res->connection, res->etag, res->content_type, res->content_length);
-        mysql_query(mysql, query);
+        sprintf(query, "INSERT INTO sniff_http_response values(%d,'%s','%s',%d,'%s','%s','%s','%s','%s')", count,
+            res->status_line, res->server, res->content_length, res->content_type, res->content_encoding,
+            res->set_cookie, res->cache_control, res->if_modified_since);
+        mysql_query(&mysql, query);
+        int n = mysql_real_query(&mysql, query, strlen(query));
+        if (n) {
+            cout << "Failed to insert the  response:" << mysql_error(&mysql) << endl;
+        }
 
     }
-    if (req->content_type != NULL) {
-        char* file_path;
-        char* cont = find_httphdr_end(payload);
-        if (strstr(payload, "text/html")) {//else if (strstr(payload, )) {}
+    if (res->content_type != NULL) {
+        char file_path[101];
+        //char* cont = find_httphdr_end(payload);
+        char* cont = strstr(payload, "\r\n\r\n") + 4;
+        char* type = ret_info("Content-Type:", payload);
+        if (strstr(type, "text/html") != NULL) {
             sprintf(file_path, "res_content/%d.html", count);
-            FILE* fp = fopen(file_path, "w");//w文本形式/wb
+            FILE* fp = fopen(file_path, "w");
             if (cont != NULL) {
                 fputs(cont, fp);
             }
             fclose(fp);
         }
-        else if (strstr(payload, "text/plain")) {
+        else if (strstr(type, "text/plain") != NULL) {
             sprintf(file_path, "res_content/%d.txt", count);
             FILE* fp = fopen(file_path, "w");
             if (cont != NULL) {
@@ -200,31 +418,31 @@ void parse_http_payload(u_char* origin_payload, int len,int count) {
             }
             fclose(fp);
         }
-        else if (strstr(payload, "image/jpeg")) {
+        else if (strstr(type, "image/jpeg") != NULL) {
             sprintf(file_path, "res_content/%d.jpg", count);
             FILE* fp = fopen(file_path, "wb");
             if (cont != NULL) {
-                fwrite(cont, sizeof(char), req->content_length, fp);
+                fwrite(cont, sizeof(char), res->content_length, fp);
             }
             fclose(fp);
         }
-        else if (strstr(payload, "image/gif")) {
+        else if (strstr(type, "image/gif") != NULL) {
             sprintf(file_path, "res_content/%d.gif", count);
             FILE* fp = fopen(file_path, "wb");
             if (cont != NULL) {
-                fwrite(cont, sizeof(char), req->content_length, fp);
+                fwrite(cont, sizeof(char), res->content_length, fp);
             }
             fclose(fp);
         }
-        else if (strstr(payload, "video/quicktime")) {
+        else if (strstr(type, "video/quicktime") != NULL) {
             sprintf(file_path, "res_content/%d.mov", count);
             FILE* fp = fopen(file_path, "wb");
             if (cont != NULL) {
-                fwrite(cont, sizeof(char), req->content_length, fp);
+                fwrite(cont, sizeof(char), res->content_length, fp);
             }
             fclose(fp);
         }
-        else if (strstr(payload, "Applicationvnd.ms-powerpoint")) {
+        else if (strstr(type, "Applicationvnd.ms-powerpoint") != NULL) {
             sprintf(file_path, "res_content/%d.ppt", count);
             FILE* fp = fopen(file_path, "w");
             if (cont != NULL) {
@@ -233,20 +451,19 @@ void parse_http_payload(u_char* origin_payload, int len,int count) {
             fclose(fp);
         }
         else {//将其他文件类型保存为.bin
-            sprintf(file_path, "res_content/%d.bin", count);
-            FILE* fp = fopen(file_path, "wb");
-            if (cont != NULL) {
-                fwrite(cont, sizeof(char), req->content_length, fp);
+            if (res->content_length != 0) {
+                sprintf(file_path, "res_content/%d.bin", count);
+                FILE* fp = fopen(file_path, "wb");
+                if (cont != NULL) {
+                    fwrite(cont, sizeof(char), req->content_length, fp);
+                }
+                fclose(fp);
             }
-            fclose(fp);
         }
     }
     delete req;
     delete res;
 }
-
-
-
 
 char* find_httphdr_end(char* data) {
     char* ptr;

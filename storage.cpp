@@ -214,8 +214,14 @@ void got_packet(int count, const u_char* packet) {
     result->append("   Dst port: " + to_string(ntohs(tcp->th_dport)) + "\n");
 
     char query[1024];
-    sprintf(query, "INSERT INTO ip_port values(%d,'%s','%s',%d,%d)", count, inet_ntoa(ip->ip_src), (inet_ntoa(ip->ip_dst)), ntohs(tcp->th_sport), ntohs(tcp->th_dport));
-    mysql_query(mysql, query);
+    char query_tmp[1024];
+    sprintf(query, "INSERT INTO ip_port values(%d,'%s'", count, inet_ntoa(ip->ip_src));
+    sprintf(query_tmp, ",'%s',%d,%d)", inet_ntoa(ip->ip_dst), ntohs(tcp->th_sport), ntohs(tcp->th_dport));
+    strcat(query, query_tmp);
+    int n = mysql_real_query(&mysql, query, strlen(query));
+    if (n) {
+        cout << "Failed to insert the ip_port" << mysql_error(&mysql) << endl;
+    }
 
     /* define/compute tcp payload (segment) offset */
     payload = (u_char*)(packet + SIZE_ETHERNET + size_ip + size_tcp);
