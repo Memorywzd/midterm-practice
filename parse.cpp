@@ -1,4 +1,12 @@
 #include "parse.h"
+
+#include <iostream>
+#include <sys/types.h>
+#include <string.h>
+#include <malloc.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 using namespace std;
 
 extern http_st_code HTTP_STATUS_CODE_ARRAY[] = {
@@ -304,9 +312,9 @@ char* ret_host_uri(char* payload, int linelen,char* host) {
 }
 
 
-void parse_http_payload(u_char* origin_payload, int len, int count) {
+void parse_http_payload(u_char* origin_payload, int len, int count, MYSQL* mysql) {
     char* payload = (char*)origin_payload;
-    printf("http payload:\n%s", payload);
+    printf("http payload:\n%s\n", payload);
     char* ptr = payload;
 
     sniff_http_request* req = new sniff_http_request;
@@ -348,10 +356,10 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         sprintf(query, "INSERT INTO sniff_http_request values(%d,'%s','%s','%s','%s','%s',%d,'%s','%s')",
             count, req->request_line, req->host, req->request_uri, req->user_agent, req->cookie,
             req->content_length, req->content_type, req->connection);
-        //mysql_query(&mysql, query);
-        int n = mysql_real_query(&mysql, query, strlen(query));
+        //mysql_query(mysql, query);
+        int n = mysql_real_query(mysql, query, strlen(query));
         if (n) {
-            cout << "Failed to insert the request:" << mysql_error(&mysql) << endl;
+            cout << "Failed to insert the request:" << mysql_error(mysql) << endl;
         }
         delete req;
     }
@@ -390,10 +398,10 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         sprintf(query, "INSERT INTO sniff_http_response values(%d,'%s','%s',%d,'%s','%s','%s','%s','%s')", count,
             res->status_line, res->server, res->content_length, res->content_type, res->content_encoding,
             res->set_cookie, res->cache_control, res->if_modified_since);
-        //mysql_query(&mysql, query);
-        int n = mysql_real_query(&mysql, query, strlen(query));
+        //mysql_query(mysql, query);
+        int n = mysql_real_query(mysql, query, strlen(query));
         if (n) {
-            cout << "Failed to insert the  response:" << mysql_error(&mysql) << endl;
+            cout << "Failed to insert the  response:" << mysql_error(mysql) << endl;
         }
 
     }
@@ -408,7 +416,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
             return;
         }
         if (strstr(type, "text/html") != NULL) {
-            sprintf(file_path, "res_content/%d.html", count);
+            sprintf(file_path, "/root/res_content/%d.html", count);
             FILE* fp = fopen(file_path, "w");
             if (cont != NULL) {
                 fputs(cont, fp);
@@ -416,7 +424,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
             fclose(fp);
         }
         else if (strstr(type, "text/plain") != NULL) {
-            sprintf(file_path, "res_content/%d.txt", count);
+            sprintf(file_path, "/root/res_content/%d.txt", count);
             FILE* fp = fopen(file_path, "w");
             if (cont != NULL) {
                 fputs(cont, fp);
@@ -424,7 +432,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
             fclose(fp);
         }
         else if (strstr(type, "image/jpeg") != NULL) {
-            sprintf(file_path, "res_content/%d.jpg", count);
+            sprintf(file_path, "/root/res_content/%d.jpg", count);
             FILE* fp = fopen(file_path, "wb");
             if (cont != NULL) {
                 fwrite(cont, sizeof(char), res->content_length, fp);
@@ -432,7 +440,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
             fclose(fp);
         }
         else if (strstr(type, "image/gif") != NULL) {
-            sprintf(file_path, "res_content/%d.gif", count);
+            sprintf(file_path, "/root/res_content/%d.gif", count);
             FILE* fp = fopen(file_path, "wb");
             if (cont != NULL) {
                 fwrite(cont, sizeof(char), res->content_length, fp);
@@ -440,7 +448,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
             fclose(fp);
         }
         else if (strstr(type, "video/quicktime") != NULL) {
-            sprintf(file_path, "res_content/%d.mov", count);
+            sprintf(file_path, "/root/res_content/%d.mov", count);
             FILE* fp = fopen(file_path, "wb");
             if (cont != NULL) {
                 fwrite(cont, sizeof(char), res->content_length, fp);
@@ -448,7 +456,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
             fclose(fp);
         }
         else if (strstr(type, "Applicationvnd.ms-powerpoint") != NULL) {
-            sprintf(file_path, "res_content/%d.ppt", count);
+            sprintf(file_path, "/root/res_content/%d.ppt", count);
             FILE* fp = fopen(file_path, "w");
             if (cont != NULL) {
                 fputs(cont, fp);
@@ -457,7 +465,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         }
         else {//将其他文件类型保存为.bin
             if (res->content_length != 0) {
-                sprintf(file_path, "res_content/%d.bin", count);
+                sprintf(file_path, "/root/res_content/%d.bin", count);
                 FILE* fp = fopen(file_path, "wb");
                 if (fp == NULL) cout << "!!!";
                 if (cont != NULL) {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "parse.h"
+
 #include <pcap.h>
 
 /* 以太网卡测试用 */
@@ -164,7 +166,7 @@ struct sniff_tcp {
 
 void set_wired(bool);
 
-void got_packet(int count, const u_char* packet);
+void got_packet(int count, const u_char* packet, MYSQL* mysql);
 
 void print_payload(const u_char* payload, int len);
 

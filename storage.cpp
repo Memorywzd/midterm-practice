@@ -1,6 +1,5 @@
 #include "storage.h"
 #include "logger.h"
-#include "parse.h"
 
 #include <iostream>
 #include <sstream>
@@ -106,8 +105,8 @@ void print_payload(const u_char* payload, int len) {
 }
 
 //unused params : u_char* args, const struct pcap_pkthdr* header
-void got_packet(int count, const u_char* packet) {
-    /* got lock */
+void got_packet(int count, const u_char* packet, MYSQL* mysql) {
+    /* got lock 
     int fd = open(LOCKFILE, O_RDWR | O_CREAT, LOCKMODE);
 	if (fd < 0) {
 		logger(LOG_ERR, "Unable to open lock file");
@@ -126,7 +125,7 @@ void got_packet(int count, const u_char* packet) {
     ftruncate(fd, 0);
     char buf[16];
     sprintf(buf, "%ld", (long)getpid());
-    write(fd, buf, strlen(buf) + 1);
+    write(fd, buf, strlen(buf) + 1);*/
 
     /* declare pointers to packet headers */
     const struct sniff_ethernet* ethernet;      /* The ethernet header [1] */
@@ -236,14 +235,15 @@ void got_packet(int count, const u_char* packet) {
     result->append("   Src port: " + to_string(ntohs(tcp->th_sport)) + "\n");
     result->append("   Dst port: " + to_string(ntohs(tcp->th_dport)) + "\n");
     
+	/* query database */
     char query[1024];
     char query_tmp[1024];
     sprintf(query, "INSERT INTO ip_port values(%d,'%s'", count, inet_ntoa(ip->ip_src));
     sprintf(query_tmp, ",'%s',%d,%d)", inet_ntoa(ip->ip_dst), ntohs(tcp->th_sport), ntohs(tcp->th_dport));
     strcat(query, query_tmp);
-    int n = mysql_real_query(&mysql, query, strlen(query));
+    int n = mysql_real_query(mysql, query, strlen(query));
     if (n) {
-        cout << "Failed to insert the ip_port:" << mysql_error(&mysql) << endl;
+        cout << "Failed to insert the ip_port:" << mysql_error(mysql) << endl;
     }
 
     /* define/compute tcp payload (segment) offset */
@@ -260,18 +260,18 @@ void got_packet(int count, const u_char* packet) {
         result->append("   Payload (" + to_string(size_payload) + " bytes):\n");
         logger(LOG_INFO, result->c_str());
         print_payload(payload, size_payload);
-        parse_http_payload(payload, size_payload,count);
+        parse_http_payload(payload, size_payload, count, mysql);
     }
     else {
         result->append("No payload\n");
         logger(LOG_INFO, result->c_str());
     }
 	delete result;
-    /**/
+    /*
 	f1.l_type = F_UNLCK;
 	if (fcntl(fd, F_SETLK, &f1) < 0) {
 		syslog(LOG_ERR, "can't unlock %s: %s", LOCKFILE, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
-    close(fd);
+    close(fd);*/
 }

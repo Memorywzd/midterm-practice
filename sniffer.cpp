@@ -185,18 +185,28 @@ void dispatch() {
 			u_char* wired_flag = new u_char;
             u_char* buf = new u_char[2346];
 
+            /* open mysql connection */
+			MYSQL* mysql = new MYSQL;
+            mysql_init(mysql);
+            char* database_name = "midterm";
+            if (!mysql_real_connect(mysql, "172.25.180.18", "midterm", "8zVh9WX7ucJM8_W", database_name, 0, NULL, 0)) {
+                printf("Failed to connect:%s\n", mysql_error(mysql));
+            }
+			
             while (read(pipefd[0], count, 4)> 0) {
                 read(pipefd[0], wired_flag, 1);
                 if (*wired_flag == '1') set_wired(true);
                 read(pipefd[0], caplen, 4);
                 read(pipefd[0], buf, *caplen);
-                got_packet(*count, buf);
+                got_packet(*count, buf, mysql);
             }
             close(pipefd[0]);
             delete wired_flag;
 			delete count;
 			delete caplen;
             delete[] buf;
+			delete mysql;
+            mysql_close(mysql);
             exit(EXIT_SUCCESS);
         }
         else {							/* Parent writes argv[1] to pipe */

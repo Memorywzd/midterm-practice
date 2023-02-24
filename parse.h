@@ -1,14 +1,7 @@
 #pragma once
 
-#include <iostream>
-#include <sys/types.h>
-#include <string.h>
-#include <malloc.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <mysql/mysql.h>
 #include <mysql/errmsg.h>
-extern MYSQL mysql;
 
 
 // TODO
@@ -161,7 +154,7 @@ struct sniff_http_response
     char* if_modified_since;
 };
 
-void parse_http_payload(u_char* origin_payload, int len,int count);
+void parse_http_payload(u_char* origin_payload, int len, int count, MYSQL* mysql);
 
 char* ret_first_line(char* payload);
 char* ret_info(char* keyword, char* payload);
