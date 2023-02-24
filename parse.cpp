@@ -390,7 +390,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         sprintf(query, "INSERT INTO sniff_http_response values(%d,'%s','%s',%d,'%s','%s','%s','%s','%s')", count,
             res->status_line, res->server, res->content_length, res->content_type, res->content_encoding,
             res->set_cookie, res->cache_control, res->if_modified_since);
-        mysql_query(&mysql, query);
+        //mysql_query(&mysql, query);
         int n = mysql_real_query(&mysql, query, strlen(query));
         if (n) {
             cout << "Failed to insert the  response:" << mysql_error(&mysql) << endl;
@@ -402,10 +402,14 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         //char* cont = find_httphdr_end(payload);
         char* cont = strstr(payload, "\r\n\r\n") + 4;
         char* type = ret_info("Content-Type:", payload);
+        if (type == nullptr) {
+            delete req;
+            delete res;
+            return;
+        }
         if (strstr(type, "text/html") != NULL) {
             sprintf(file_path, "res_content/%d.html", count);
             FILE* fp = fopen(file_path, "w");
-            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fputs(cont, fp);
             }
@@ -414,7 +418,6 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         else if (strstr(type, "text/plain") != NULL) {
             sprintf(file_path, "res_content/%d.txt", count);
             FILE* fp = fopen(file_path, "w");
-            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fputs(cont, fp);
             }
@@ -423,7 +426,6 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         else if (strstr(type, "image/jpeg") != NULL) {
             sprintf(file_path, "res_content/%d.jpg", count);
             FILE* fp = fopen(file_path, "wb");
-            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fwrite(cont, sizeof(char), res->content_length, fp);
             }
@@ -432,7 +434,6 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         else if (strstr(type, "image/gif") != NULL) {
             sprintf(file_path, "res_content/%d.gif", count);
             FILE* fp = fopen(file_path, "wb");
-            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fwrite(cont, sizeof(char), res->content_length, fp);
             }
@@ -441,7 +442,6 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         else if (strstr(type, "video/quicktime") != NULL) {
             sprintf(file_path, "res_content/%d.mov", count);
             FILE* fp = fopen(file_path, "wb");
-            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fwrite(cont, sizeof(char), res->content_length, fp);
             }
@@ -450,7 +450,6 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         else if (strstr(type, "Applicationvnd.ms-powerpoint") != NULL) {
             sprintf(file_path, "res_content/%d.ppt", count);
             FILE* fp = fopen(file_path, "w");
-            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fputs(cont, fp);
             }
