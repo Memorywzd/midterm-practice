@@ -48,7 +48,7 @@ void write_pipe(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
     write(writefd[count % NUM_CHILDREN], args, 1);
     write(writefd[count % NUM_CHILDREN], &len, 4);
 	write(writefd[count % NUM_CHILDREN], packet, len);
-	count++;
+    count++;
 }
 
 void do_capture() {
@@ -159,6 +159,10 @@ void ctrl_c(int sig) {
     exit(0);
 }
 
+void pipe_write_err(int sig) {
+	cout << "error in pipe write sig: "<<sig << endl;
+}
+
 void dispatch() {
     int pipefd[2];
     pid_t cpid;
@@ -214,6 +218,7 @@ void dispatch() {
         }
     }
     signal(SIGINT, ctrl_c);
+	signal(SIGPIPE, pipe_write_err);
     do_capture();
     for (int i = 0; i < NUM_CHILDREN; i++)close(writefd[i]);
 }
