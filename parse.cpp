@@ -314,12 +314,17 @@ char* ret_host_uri(char* payload, int linelen,char* host) {
 
 void parse_http_payload(u_char* origin_payload, int len, int count, MYSQL* mysql) {
     char* payload = (char*)origin_payload;
-    printf("http payload:\n%s\n", payload);
     char* ptr = payload;
+    if ((pkt_type(ptr, len)) == 2) {
+        return;
+    }
+    else {
+        printf("http payload:\n%s\n", payload);
+    }
 
     sniff_http_request* req = new sniff_http_request;
     sniff_http_response* res = new sniff_http_response;
-    if (!(pkt_type(ptr, len))) {
+    if ((pkt_type(ptr, len))==0) {
         //printf("REQUEST\n\n");
         //printf("------------------TEST-PRINT\n")
         req->number = count;
@@ -363,7 +368,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count, MYSQL* mysql
         }
         delete req;
     }
-    else {
+    else if((pkt_type(ptr, len))==1){
         //printf("RESPOND\n\n");
         //printf("------------------TEST-PRINT\n");
 
@@ -405,6 +410,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count, MYSQL* mysql
         }
 
     }
+
     if (res->content_type != NULL) {
         char file_path[101];
         //char* cont = find_httphdr_end(payload);
@@ -486,7 +492,7 @@ char* find_httphdr_end(char* data) {
     printf("data?:%s\n", ptr);
 }
 
-bool pkt_type(const char* ptr, const int datalen)
+int pkt_type(const char* ptr, const int datalen)
 {
     char* req = NULL;
     char* rsp = NULL;
@@ -499,6 +505,9 @@ bool pkt_type(const char* ptr, const int datalen)
     }
     else if (rsp != NULL) {
         return 1;
+    }
+    else {
+        return 2;
     }
 }
 

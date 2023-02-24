@@ -161,7 +161,7 @@ char* ret_info(char* keyword, char* payload);
 
 char* find_httphdr_end(char* data);
 
-bool pkt_type(const char* ptr, const int datalen);
+int pkt_type(const char* ptr, const int datalen);
 char* IsRequest(const char* ptr, const int datalen);
 char* IsResponse(const char* ptr, const int datalen);
 
