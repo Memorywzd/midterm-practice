@@ -7,7 +7,7 @@ MYSQL mysql;
 int main(int argc, char *argv[]) {
 	mysql_init(&mysql);
 	char* database_name = "midterm";
-	if (!mysql_real_connect(&mysql, "13.115.88.135", "midterm", "8zVh9WX7ucJM8_W", database_name, 0, NULL, 0)){
+	if (!mysql_real_connect(&mysql, "172.25.180.18", "midterm", "8zVh9WX7ucJM8_W", database_name, 0, NULL, 0)){
 		printf("Failed to connect:%s\n", mysql_error(&mysql));
 	}
 

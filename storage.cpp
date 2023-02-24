@@ -243,7 +243,7 @@ void got_packet(int count, const u_char* packet) {
     strcat(query, query_tmp);
     int n = mysql_real_query(&mysql, query, strlen(query));
     if (n) {
-        cout << "Failed to insert the ip_port" << mysql_error(&mysql) << endl;
+        cout << "Failed to insert the ip_port:" << mysql_error(&mysql) << endl;
     }
 
     /* define/compute tcp payload (segment) offset */

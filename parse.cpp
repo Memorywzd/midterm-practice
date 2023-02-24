@@ -405,6 +405,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         if (strstr(type, "text/html") != NULL) {
             sprintf(file_path, "res_content/%d.html", count);
             FILE* fp = fopen(file_path, "w");
+            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fputs(cont, fp);
             }
@@ -413,6 +414,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         else if (strstr(type, "text/plain") != NULL) {
             sprintf(file_path, "res_content/%d.txt", count);
             FILE* fp = fopen(file_path, "w");
+            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fputs(cont, fp);
             }
@@ -421,6 +423,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         else if (strstr(type, "image/jpeg") != NULL) {
             sprintf(file_path, "res_content/%d.jpg", count);
             FILE* fp = fopen(file_path, "wb");
+            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fwrite(cont, sizeof(char), res->content_length, fp);
             }
@@ -429,6 +432,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         else if (strstr(type, "image/gif") != NULL) {
             sprintf(file_path, "res_content/%d.gif", count);
             FILE* fp = fopen(file_path, "wb");
+            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fwrite(cont, sizeof(char), res->content_length, fp);
             }
@@ -437,6 +441,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         else if (strstr(type, "video/quicktime") != NULL) {
             sprintf(file_path, "res_content/%d.mov", count);
             FILE* fp = fopen(file_path, "wb");
+            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fwrite(cont, sizeof(char), res->content_length, fp);
             }
@@ -445,6 +450,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
         else if (strstr(type, "Applicationvnd.ms-powerpoint") != NULL) {
             sprintf(file_path, "res_content/%d.ppt", count);
             FILE* fp = fopen(file_path, "w");
+            if (fp == NULL) cout << "!!!";
             if (cont != NULL) {
                 fputs(cont, fp);
             }
@@ -454,6 +460,7 @@ void parse_http_payload(u_char* origin_payload, int len, int count) {
             if (res->content_length != 0) {
                 sprintf(file_path, "res_content/%d.bin", count);
                 FILE* fp = fopen(file_path, "wb");
+                if (fp == NULL) cout << "!!!";
                 if (cont != NULL) {
                     fwrite(cont, sizeof(char), req->content_length, fp);
                 }

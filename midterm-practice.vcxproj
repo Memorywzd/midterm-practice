@@ -110,7 +110,7 @@
       <AdditionalIncludeDirectories>E:\midterm-practice\libpcap-1.10.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <LibraryDependencies>pcap</LibraryDependencies>
+      <LibraryDependencies>pcap;mysqlclient</LibraryDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
