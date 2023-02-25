@@ -4,9 +4,9 @@
 <template>
     <div class="about">
       <div class="top">
-        <h1>This is an about page</h1>
+
         <h1>欢迎您{{ this.$store.state.username }}</h1>
-        <h1>content-type:{{content_type}}</h1>
+
       </div>
       <div class='menu'>
         <ul class="nav nav-list">
@@ -90,10 +90,9 @@
         </ul>
       </div>
       <div>
+     
+      <h3>查询到载荷内容为:   {{content_type}}</h3>
        
-        <div>host</div>
-        <!-- {{data}} -->
-        <div class="echart" id="mychart" :style="myChartStyle"></div>
       </div>
     </div>
   
@@ -107,6 +106,7 @@
   export default {
     data() {
       return {
+        content:'',
         content_type:'',
         data:'',
         myChart: {},
@@ -149,16 +149,27 @@
     methods: {
       getcontent(){
         this.content_type = sessionStorage.getItem('content_type')
+        console.log(this.content_type)
+
+      },
+      findcontent(){
+        for(var i = 0;i<this.data.length;++i){
+          if(this.content_type.srcip == this.data[i].srcip && this.content_type.destip == this.data[i].destip){
+            this.content = this.data[i].loadContent;
+            break;
+          }
+        }
       },
       get() {
-        let apiKey = '2WshDvM3a8682c1238af5a34f4eece5319e5a5637618bb7'
-        let url = 'http://152.136.185.210:7878/api/hy66/category'
-        this.axios.get(url)
-          .then(res => {
-            console.log(res);
-            this.data = res.data;
-          })
-        },
+      let apiKey = '2WshDvM3a8682c1238af5a34f4eece5319e5a5637618bb7'
+      let url = 'http://172.25.180.18/analyse/responseFeature'
+      this.axios.get(url)
+        .then(res => {
+          console.log(res);
+          this.data = res.data;
+         
+        })
+      },
         isLogin(){
 
               if(sessionStorage.getItem('user')!=null && sessionStorage.getItem('userToken')){

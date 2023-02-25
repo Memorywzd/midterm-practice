@@ -2,8 +2,7 @@
 <!-- list 出所有请求报文的特征，并在 Host 字段处链接显示另一页面，list 出该 host 域名信息 -->
 <template>
   <div class="about">
-    <div class="top">
-      <h1>This is an about page</h1>
+    <div class="top"> 
       <h1>欢迎您{{ this.$store.state.username }}</h1>
       
     </div>
@@ -96,7 +95,12 @@
       <table class="metable" border="1">
         <thead>
             <tr>
-                <th>请求报文的特征</th>
+                <th>源地址</th>
+                <th>目的地址</th>
+                <th>帧长度</th>
+                <th>host</th>
+                <th>访问类型</th>
+                <th>兴趣爱好</th>
             </tr>
         </thead>
         <tbody id="appproject">
@@ -104,6 +108,7 @@
                 <td>{{li.srcip}}</td>
                 <td>{{li.destip}}</td>
                 <td>{{li.Framelength}}</td>
+                <td><a href="/reqdetail" @click="host(li)">host</a></td>
                 <td>{{li.Accesstype}}</td>
                 <td>{{li.interest}}</td>
                
@@ -165,6 +170,7 @@ export default {
     this.initEcharts();
   },
   methods: {
+
     host(e){
       sessionStorage.setItem("host",e)
     },
@@ -263,6 +269,11 @@ export default {
 }
 li a{
   color:rgba(107, 150, 194, 0.913);
+  text-decoration: none;
+}
+td a
+{
+  color: #000;
   text-decoration: none;
 }
 </style>

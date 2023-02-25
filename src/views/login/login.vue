@@ -44,7 +44,7 @@
         //next()：必须执行
         beforeRouteEnter: (to, from, next) => {
             next(vm => {
-            // vm 就是当前组件的实例相当于上面的 this，所以在 next 方法里你就可以把 vm 当 this 来用了。
+
                 vm.$store.dispatch("setUser", null);
             });
         },

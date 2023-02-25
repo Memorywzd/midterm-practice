@@ -1,7 +1,7 @@
 <template>
     <div class="about">
       <div class="top">
-        <h1>This is an about page</h1>
+    
         <h1>欢迎您{{ this.$store.state.username }}</h1>
       </div>
       <div class='menu'>
@@ -88,7 +88,22 @@
       <div>
        
         <div>统计各源地址发送的 HTTP request 数量</div>
-        
+        <table class="metable" border="1">
+          <thead>
+              <tr>
+                  <th>源地址</th>
+                  <th>request数量</th>
+              </tr>
+          </thead>
+          <tbody id="appproject">
+              <tr v-for="li in data">
+                  <td>{{li.srcip}}</td>
+                  <td>1</td>
+                  
+                 
+              </tr>
+          </tbody>
+      </table>
        
       </div>
     </div>
@@ -104,26 +119,44 @@
     data() {
       return {
         data:'',
+        obj:{}
       };
     },
     created(){
         this.isLogin();
         this.ver();
         this.get();
+       
       },
     mounted() {
+
       
     },
     methods: {
+      cacu(){
+        for(var i in this.data){
+          var j = i.srcip
+          if(this.obj[j]){
+            this.obj[j] = this.obj[j]+ 1;
+          }
+          else{
+            this.obj[j] = 1;
+          }
+        console.log(this.obj)
+        }
+      },
       get() {
         let apiKey = '2WshDvM3a8682c1238af5a34f4eece5319e5a5637618bb7'
-        let url = 'http://152.136.185.210:7878/api/hy66/category'
+        let url = 'http://172.25.180.18/analyse/responseFeature'
         this.axios.get(url)
           .then(res => {
             console.log(res);
             this.data = res.data;
+            this.cacu();
           })
         },
+        
+          
         isLogin(){
               if(sessionStorage.getItem('user')!=null && sessionStorage.getItem('userToken')){
                 this.$store.commit("userStatus",sessionStorage.getItem("user"));
