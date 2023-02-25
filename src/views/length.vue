@@ -88,8 +88,13 @@
       <div>
        
         <div>统计请求报文的最大帧大小、最小帧大小、平均帧大小</div>
+        <h3>最大帧大小</h3>
+        <h3>最小帧大小</h3>
+        <h3>平均帧大小</h3>
         <div>统计响应报文的最大帧大小、最小帧大小、平均帧大小</div>
-       
+        <h3>最大帧大小</h3>
+        <h3>最小帧大小</h3>
+        <h3>平均帧大小</h3>
       </div>
     </div>
   
@@ -115,6 +120,12 @@
       
     },
     methods: {
+      beforeRouteEnter: (to, from, next) => {
+            next(vm => {
+            // vm 就是当前组件的实例相当于上面的 this，所以在 next 方法里你就可以把 vm 当 this 来用了。
+                // vm.$store.dispatch("setUser", null);
+            });
+        },
       get() {
         let apiKey = '2WshDvM3a8682c1238af5a34f4eece5319e5a5637618bb7'
         let url = 'http://152.136.185.210:7878/api/hy66/category'

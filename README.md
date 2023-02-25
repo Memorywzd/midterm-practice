@@ -41,36 +41,19 @@
 - 选用vue或react
 - 参照api doc编写，对api提出需求<br>
     /analyse/requestFeature (请求报文的特征)<br>
-      id 角色id<br>
-      host(展示另一个页面)host<br>
-    /analyse/requestType (访问类型 - 饼图)<br>
-      id 角色id<br>
+      data:源地址,目的地址,帧长度,访问类型,兴趣爱好(目的地址公司类型)
+      {"srcip":"1.1.1.1","destip":"2.2.2.2","Framelength":"2","Accesstype":"1","interest":"type"}
     /analyse/responseFeature(响应报文的特征)<br>
-      id 角色id<br>
-      content-type(展示另一个页面)<br>
-    /analyse/responseType(载荷类型 - 饼图)<br>
-      id 角色id<br>
-    /analyse/sendHttp(发送http数量)<br>
-      id 角色id<br>
-    /analyse/receiveHttp(接收http数量)<br>
-      id 角色id<br>
-    /analyse/requestLength(请求报文的帧长)<br>
-      id 角色id<br>
-    /analyse/responseLength(响应报文的帧长)<br>
-      id 角色id<br>
-
-    <br>
-    /whois/hostInterest(请求报文的host兴趣)<br>
-      id 角色id<br>
-      requestId 请求报文id<br>
-    /whois/htmlTxt(关键字搜索出网页内容性质)<br>
-      id 角色id<br>
-      keywords 关键字<br>
-
+      data:源地址,目的地址,帧长度,Content_type,载荷内容
+      {"srcip":"1.1.1.1","destip":"2.2.2.2","frameLength":"2","content_Type":"1","loadContent":"..."}
     /whois/domainType(域名类型)<br>
-      id 角色id<br>
-      domain 域名<br>
-      domaincompany 域名注册公司<br>
+      Method:get
+      Query:
+      domain 域名 str<br>
+      domaincompany 域名注册公司 str<br>
+      data:域名，域名注册公司，域名类型
+      {"domain":"cn","domaincompany":"ccc company","domainType":"Secdomainname"}
+
 
 - 参照任务书2.4节制作页面
 - 先期完成文档的序言部分

@@ -23,7 +23,7 @@
                   <button  type="submit" @click="handlelogin">登录</button>
                   <button  type="submit" @click="open">登出</button>
                   <!-- v-on点击按钮触发handlelogin方法 -->
-                  <button  @click="">注册</button>
+                  <button>注册</button>
               <router-view></router-view>
         </div>
     </div>
