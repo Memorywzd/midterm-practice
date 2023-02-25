@@ -92,7 +92,7 @@
         </ul>
       </div>
       <div>
-       
+        
         <div>响应报文的特征</div>
         <!-- {{data}} -->
         <div class="echart" id="mychart" :style="myChartStyle"></div>

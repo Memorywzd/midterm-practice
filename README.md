@@ -42,17 +42,17 @@
 - 参照api doc编写，对api提出需求<br>
     /analyse/requestFeature (请求报文的特征)<br>
       data:源地址,目的地址,帧长度,访问类型,兴趣爱好(目的地址公司类型)
-      {"srcip":"1.1.1.1","destip":"2.2.2.2","Framelength":"2","Accesstype":"1","interest":"type"}
+      [{"srcip":"1.1.1.1","destip":"2.2.2.2","Framelength":"2","Accesstype":"1","interest":"type"},]
     /analyse/responseFeature(响应报文的特征)<br>
       data:源地址,目的地址,帧长度,Content_type,载荷内容
-      {"srcip":"1.1.1.1","destip":"2.2.2.2","frameLength":"2","content_Type":"1","loadContent":"..."}
+      [{"srcip":"1.1.1.1","destip":"2.2.2.2","frameLength":"2","content_Type":"1","loadContent":"..."},]
     /whois/domainType(域名类型)<br>
       Method:get
       Query:
       domain 域名 str<br>
       domaincompany 域名注册公司 str<br>
       data:域名，域名注册公司，域名类型
-      {"domain":"cn","domaincompany":"ccc company","domainType":"Secdomainname"}
+      [{"domain":"cn","domaincompany":"ccc company","domainType":"Secdomainname"},]
 
 
 - 参照任务书2.4节制作页面

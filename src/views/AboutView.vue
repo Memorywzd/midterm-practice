@@ -92,6 +92,25 @@
     <div>
       <!-- list 出所有请求报文的特征，并在 Host 字段处链接显示另一页面，list 出该 host 域名信息->8 -->
       <div>请求报文的特征</div>
+
+      <table class="metable" border="1">
+        <thead>
+            <tr>
+                <th>请求报文的特征</th>
+            </tr>
+        </thead>
+        <tbody id="appproject">
+            <tr v-for="li in data">
+                <td>{{li.srcip}}</td>
+                <td>{{li.destip}}</td>
+                <td>{{li.Framelength}}</td>
+                <td>{{li.Accesstype}}</td>
+                <td>{{li.interest}}</td>
+               
+            </tr>
+        </tbody>
+    </table>
+
       <!-- 统计请求报文访问类型（饼图）-->
       <div class="echart" id="mychart" :style="myChartStyle"></div>
     </div>
@@ -108,6 +127,7 @@ export default {
   data() {
     return {
       data:'',
+      list:'',
       myChart: {},
       pieData: [
         {
@@ -150,11 +170,13 @@ export default {
     },
     get() {
       let apiKey = '2WshDvM3a8682c1238af5a34f4eece5319e5a5637618bb7'
-      let url = 'http://152.136.185.210:7878/api/hy66/category'
+      let url = 'http://172.25.180.18/analyse/requestFeature'
       this.axios.get(url)
         .then(res => {
           console.log(res);
           this.data = res.data;
+          console.log(this.data)
+          this.list = res.data;
         })
       },
       isLogin(){
