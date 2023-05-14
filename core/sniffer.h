@@ -2,7 +2,7 @@
 
 #include "storage.h"
 
-#define NUM_CHILDREN 5
+#define NUM_CHILDREN 1
 
 void set_num(int num);
 void set_exp(char* exp);

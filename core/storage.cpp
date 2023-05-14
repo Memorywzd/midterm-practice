@@ -2,13 +2,12 @@
 #include "logger.h"
 
 #include <iostream>
-#include <sstream>
-#include <syslog.h>
-#include <iomanip>
-#include <fcntl.h>
-#include <unistd.h>
 #include <cstring>
 #include <bitset>
+#include <sstream>
+
+#include <fcntl.h>
+#include <unistd.h>
 
 #define LOCKFILE "/var/run/snifferstorage.pid"
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
@@ -18,90 +17,6 @@ using namespace std;
 bool wired = false;
 void set_wired(bool w) {
     wired = w;
-}
-
-void print_hex_ascii_line(const u_char* payload, int len, int offset) {
-    int i;
-    int gap;
-    const u_char* ch;
-
-    ostringstream output;
-
-    /* offset */
-    output << setw(5) << setfill('0') << offset << "   ";
-
-    /* hex */
-    ch = payload;
-    for (i = 0; i < len; i++) {
-        output << hex << setw(2) << setfill('0') << static_cast<int>(*ch) << " ";
-        ch++;
-        /* add extra space after 8th byte for visual aid */
-        if (i == 7)
-            output << " ";
-    }
-    /* add space to handle line less than 8 bytes */
-    if (len < 8)
-        output << " ";
-
-    /* fill hex gap with spaces if not full line */
-    if (len < 16) {
-        gap = 16 - len;
-        for (i = 0; i < gap; i++) {
-            output << "   ";
-        }
-    }
-    output << "   ";
-
-    /* ascii (if printable) */
-    ch = payload;
-    for (i = 0; i < len; i++) {
-        if (isprint(*ch))
-            output << *ch;
-        else
-            output << ".";
-        ch++;
-    }
-
-    output << endl;
-
-    logger(LOG_INFO, output.str().c_str());
-}
-
-void print_payload(const u_char* payload, int len) {
-    int len_rem = len;
-    int line_width = 16;                /* number of bytes per line */
-    int line_len;
-    int offset = 0;                     /* zero-based offset counter */
-    const u_char* ch = payload;
-
-    if (len <= 0)
-        return;
-
-    /* data fits on one line */
-    if (len <= line_width) {
-        print_hex_ascii_line(ch, len, offset);
-        return;
-    }
-
-    /* data spans multiple lines */
-    for (;;) {
-        /* compute current line length */
-        line_len = line_width % len_rem;
-        /* print line */
-        print_hex_ascii_line(ch, line_len, offset);
-        /* compute total remaining */
-        len_rem = len_rem - line_len;
-        /* shift pointer to remaining bytes to print */
-        ch = ch + line_len;
-        /* add offset */
-        offset = offset + line_width;
-        /* check if we have line width chars or less */
-        if (len_rem <= line_width) {
-            /* print last line and get out */
-            print_hex_ascii_line(ch, len_rem, offset);
-            break;
-        }
-    }
 }
 
 //unused params : u_char* args, const struct pcap_pkthdr* header
@@ -236,7 +151,7 @@ void got_packet(int count, const u_char* packet, MYSQL* mysql) {
     result->append("   Dst port: " + to_string(ntohs(tcp->th_dport)) + "\n");
     
 	/* query database */
-    char query[1024];
+   /* char query[1024];
     char query_tmp[1024];
     sprintf(query, "INSERT INTO ip_port values(%d,'%s'", count, inet_ntoa(ip->ip_src));
     sprintf(query_tmp, ",'%s',%d,%d)", inet_ntoa(ip->ip_dst), ntohs(tcp->th_sport), ntohs(tcp->th_dport));
@@ -244,7 +159,7 @@ void got_packet(int count, const u_char* packet, MYSQL* mysql) {
     int n = mysql_real_query(mysql, query, strlen(query));
     if (n) {
         cout << "Failed to insert the ip_port:" << mysql_error(mysql) << endl;
-    }
+    }*/
 
     /* define/compute tcp payload (segment) offset */
     payload = (u_char*)(packet + size_frame + size_ip + size_tcp);
@@ -260,7 +175,9 @@ void got_packet(int count, const u_char* packet, MYSQL* mysql) {
         result->append("   Payload (" + to_string(size_payload) + " bytes):\n");
         logger(LOG_INFO, result->c_str());
         print_payload(payload, size_payload);
-        parse_http_payload(payload, size_payload, count, mysql);
+        //parse_http_payload(payload, size_payload, count, mysql);
+        get_payload(payload, size_payload, count, mysql);
+        
     }
     else {
         result->append("No payload\n");

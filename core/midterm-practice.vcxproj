@@ -88,6 +88,7 @@
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parse.cpp" />
+    <ClCompile Include="payload.cpp" />
     <ClCompile Include="process.cpp" />
     <ClCompile Include="sniffer.cpp" />
     <ClCompile Include="storage.cpp" />
@@ -96,6 +97,7 @@
     <ClInclude Include="daemonize.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="parse.h" />
+    <ClInclude Include="payload.h" />
     <ClInclude Include="process.h" />
     <ClInclude Include="sniffer.h" />
     <ClInclude Include="storage.h" />

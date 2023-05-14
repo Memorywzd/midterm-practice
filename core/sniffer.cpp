@@ -4,7 +4,7 @@
 #include <iostream>
 #include <cstring>
 #include <sstream>
-#include <syslog.h>
+
 #include <unistd.h>
 #include <sys/prctl.h>
 #include <signal.h>
@@ -44,10 +44,51 @@ void write_pipe(u_char* args, const struct pcap_pkthdr* header, const u_char* pa
 	}
     int len = header->caplen;
     static int count = 1;				/* packet counter */
-    write(writefd[count % NUM_CHILDREN], &count, 4);
-    write(writefd[count % NUM_CHILDREN], args, 1);
-    write(writefd[count % NUM_CHILDREN], &len, 4);
-	write(writefd[count % NUM_CHILDREN], packet, len);
+    ssize_t num_written = 0;
+    num_written = write(writefd[count % NUM_CHILDREN], &count, 4);
+    if (num_written == -1) {
+        if (errno == EPIPE) {
+            logger(LOG_ERR, "close at count wirte\n");
+            exit(EXIT_FAILURE);
+        }
+        else {
+            logger(LOG_ERR, "wirte\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    num_written = write(writefd[count % NUM_CHILDREN], args, 1);
+    if (num_written == -1) {
+        if (errno == EPIPE) {
+            logger(LOG_ERR, "close at flag wirte\n");
+            exit(EXIT_FAILURE);
+        }
+        else {
+            logger(LOG_ERR, "wirte\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    num_written = write(writefd[count % NUM_CHILDREN], &len, 4);
+    if (num_written == -1) {
+        if (errno == EPIPE) {
+            logger(LOG_ERR, "close at writelen wirte\n");
+            exit(EXIT_FAILURE);
+        }
+        else {
+            logger(LOG_ERR, "wirte\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    num_written = write(writefd[count % NUM_CHILDREN], packet, len);
+    if (num_written == -1) {
+        if (errno == EPIPE) {
+            logger(LOG_ERR, "close at packet wirte\n");
+            exit(EXIT_FAILURE);
+        }
+        else {
+            logger(LOG_ERR, "wirte\n");
+            exit(EXIT_FAILURE);
+        }
+    }
     count++;
 }
 
@@ -201,8 +242,16 @@ void dispatch() {
                 read(pipefd[0], wired_flag, 1);
                 if (*wired_flag == '1') set_wired(true);
                 read(pipefd[0], caplen, 4);
-                read(pipefd[0], buf, *caplen);
-                got_packet(*count, buf, mysql);
+                if (*caplen > 2346)
+                    logger(LOG_ERR, "caplen > 2346");
+                else
+                {
+                    ssize_t readlen = 0;
+                    readlen = read(pipefd[0], buf, *caplen);
+                   if (readlen != *caplen)
+						logger(LOG_ERR, "readlen != caplen");
+                    got_packet(*count, buf, mysql);
+                }
             }
             close(pipefd[0]);
             delete wired_flag;
