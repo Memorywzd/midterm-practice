@@ -106,7 +106,32 @@ void split_lines(const string& s, vector<string>& lines) {
     }
 }
 
-bool parse_request(const string& payload, http_request*& request, u_char* origin_payload) {
+void init_request_struct(http_request*& request) {
+    request->request_line = "";
+    request->host = "";
+    request->uri = "";
+	request->content_length = 0;
+    request->real_length = 0;
+	request->content_type = "";
+	request->user_agent = "";
+	request->cookie = "";
+	request->connection = "";
+}
+
+void init_response_struct(http_response*& response) {
+    response->status_line = "";
+    response->content_length = 0;
+    response->real_length = 0;
+    response->content_type = "";
+    response->content_encoding = "";
+    response->server = "";
+    response->set_cookie = "";
+    response->cache_control = "";
+    response->if_modified_since = "";
+}
+
+bool parse_request(const string& payload, http_request*& request,
+    u_char* origin_payload, int lenth) {
     vector<string> lines;
     split_lines(payload, lines);
     if (lines.empty()) {
@@ -123,24 +148,22 @@ bool parse_request(const string& payload, http_request*& request, u_char* origin
     if (pos == string::npos) {
         return false;
     }
+    request->real_length = lenth - pos - 4;
     string method_str = lines[0].substr(0, space1);
-    if (method_str == "GET") {
-        request->method = http_mthd::HTTP_MT_GET;
-    }
-    else if (method_str == "POST") {
-        request->method = http_mthd::HTTP_MT_POST;
-    }
-    else if (method_str == "PUT") {
-        request->method = http_mthd::HTTP_MT_PUT;
-    }
-    else if (method_str == "DELETE") {
-        request->method = http_mthd::HTTP_MT_DELETE;
+    if (method_str == "GET" ||
+        method_str == "POST" ||
+        method_str == "HEAD" ||
+        method_str == "PUT" ||
+        method_str == "DELETE" ||
+        method_str == "CONNECT" ||
+        method_str == "OPTIONS" ||
+        method_str == "TRACE") {
+        request->request_line = lines[0];
     }
     else {
         return false;
     }
     request->uri = lines[0].substr(space1 + 1, space2 - space1 - 1);
-    request->version = lines[0].substr(space2 + 1);
 
     // Parse headers and body
     for (size_t i = 0; i < lines.size(); ++i) {
@@ -168,6 +191,23 @@ bool parse_request(const string& payload, http_request*& request, u_char* origin
             header->name == "content-type") {
             request->content_type = header->value;
         }
+        else if (header->name == "Host" ||
+            header->name == "host") {
+			request->host = header->value;
+		}
+        else if (header->name == "User-Agent" ||
+            header->name == "User-agent" ||
+            header->name == "user-agent") {
+            request->user_agent = header->value;
+        }
+        else if (header->name == "Cookie" ||
+            header->name == "cookie") {
+			request->cookie = header->value;
+		}
+        else if (header->name == "Connection" ||
+            header->name == "connection") {
+			request->connection = header->value;
+		}
         else request->headers.push_back(*header);
         delete header;
     }
@@ -175,7 +215,8 @@ bool parse_request(const string& payload, http_request*& request, u_char* origin
     return true;
 }
 
-bool parse_response(const string& payload, http_response*& response, u_char* origin_payload) {
+bool parse_response(const string& payload, http_response*& response,
+    u_char* origin_payload, int lenth) {
     vector<string> lines;
     split_lines(payload, lines);
     if (lines.empty()) {
@@ -192,10 +233,8 @@ bool parse_response(const string& payload, http_response*& response, u_char* ori
     if (pos == string::npos) {
         return false;
     }
-    response->version = lines[0].substr(0, space1);
-    response->status_code = stoi(lines[0].substr(space1 + 1, space2 - space1 - 1));
-    response->status_text = lines[0].substr(space2 + 1);
-    
+    response->status_line = lines[0];
+    response->real_length = lenth - pos - 4;
     // Parse headers and body
     lines.clear();
     split_lines(payload.substr(0, pos + 2), lines);
@@ -219,7 +258,31 @@ bool parse_response(const string& payload, http_response*& response, u_char* ori
             header->name == "content-type") {
             response->content_type = header->value;
         }
-        else response->headers.push_back(*header);
+        else if (header->name == "Content-Encoding" ||
+            header->name == "Content-encoding" ||
+            header->name == "content-encoding") {
+			response->content_encoding = header->value;
+		}
+        else if (header->name == "Server" ||
+            header->name == "server") {
+			response->server = header->value;
+		}
+        else if (header->name == "Set-Cookie" ||
+            header->name == "Set-cookie" ||
+            header->name == "set-cookie") {
+			response->set_cookie = header->value;
+		}
+        else if (header->name == "Cache-Control" ||
+            header->name == "Cache-control" ||
+            header->name == "cache-control") {
+			response->cache_control = header->value;
+		}
+        else if (header->name == "If-Modified-Since" ||
+            header->name == "If-modified-since" ||
+            header->name == "if-modified-since") {
+			response->if_modified_since = header->value;
+		}
+        response->headers.push_back(*header);
         delete header;
     }
     response->body = strstr((char*)origin_payload, "\r\n\r\n") + 4;
@@ -234,54 +297,103 @@ void get_payload(u_char* origin_payload, int len, int count, MYSQL* mysql)
 
     bool is_http = false;
 
-    if (parse_request(payload, request, origin_payload)) {
+    if (parse_request(payload, request, origin_payload, len)) {
         is_http = true;
-        cout << "Method: " << static_cast<int>(request->method) << endl;
-        cout << "URI: " << request->uri << endl;
-        cout << "Version: " << request->version << endl;
-        if (request->content_length > 0) {
-            cout << "Content length: " << request->content_length << endl;
-            cout << "Content type: " << request->content_type << endl;
-        }
+        cout << "request_line: " << request->request_line << endl;
+        cout << "host: " << request->host << endl;
+        cout << "uri: " << request->uri << endl;
         for (const auto& header : request->headers) {
             cout << "Header: " << header.name << " = " << header.value << endl;
         }
-        if (request->content_length > 0) {
+        if (request->real_length > 0) {
 			logger(LOG_INFO, "Body:\n");
-			print_payload((u_char*)request->body, request->content_length);
+			print_payload((u_char*)request->body, request->real_length);
 		}
+
+        //query to mysql
+        char query[8192];
+        sprintf(query, "INSERT INTO sniff_http_request values(%d,'%s','%s','%s','%s','%s',%d,'%s','%s')",
+            count, request->request_line.c_str(), request->host.c_str(), request->uri.c_str(), request->user_agent.c_str(), request->cookie.c_str(),
+            request->content_length, request->content_type.c_str(), request->connection.c_str());
+        int n = mysql_real_query(mysql, query, strlen(query));
+        if (n) {
+            cout << "Failed to insert the request:" << mysql_error(mysql) << endl;
+        }
     }
-    else if (parse_response(payload, response, origin_payload)) {
+    else if (parse_response(payload, response, origin_payload, len)) {
         is_http = true;
-        cout << "Version: " << response->version << endl;
-        cout << "Status code: " << response->status_code << endl;
-        cout << "Status text: " << response->status_text << endl;
-        if (response->content_length > 0) {
-			cout << "Content length: " << response->content_length << endl;
-            cout << "Content type: " << response->content_type << endl;
-		}
+        cout << "Status_line: " << response->status_line << endl;
         for (const auto& header : response->headers) {
             cout << "Header: " << header.name << " = " << header.value << endl;
         }
-        if (response->content_length > 0) {
+        if (response->real_length > 0) {
             logger(LOG_INFO, "Body:\n");
-			print_payload((u_char*)response->body, response->content_length);
+			print_payload((u_char*)response->body, response->real_length);
 		}
+
+        //query to mysql
+        char query[8192];
+        sprintf(query, "INSERT INTO sniff_http_response values(%d,'%s','%s',%d,'%s','%s','%s','%s','%s')", count,
+            response->status_line.c_str(), response->server.c_str(), response->content_length, response->content_type.c_str(), response->content_encoding.c_str(),
+            response->set_cookie.c_str(), response->cache_control.c_str(), response->if_modified_since.c_str());
+        int n = mysql_real_query(mysql, query, strlen(query));
+        if (n) {
+            cout << "Failed to insert the  response:" << mysql_error(mysql) << endl;
+        }
     }
 
     // save payload to file
-    /*if (is_http) {
-        string filepath = "path/to/file.txt";
-        ofstream outfile(filepath, ios::out | ios::binary);
-        if (!outfile.is_open()) {
-            mkdir("test", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-            outfile.open(filepath);
+    if (is_http && response->real_length != 0) {
+        if (response->content_type == "text/html") {
+            string filepath = "/root/payload/" + to_string(count) + ".html";
+            ofstream outfile(filepath, ios::out | ios::binary);
+            if (!outfile.is_open()) {
+                mkdir("/root/payload", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+                outfile.open(filepath);
+            }
+            if (outfile.is_open()) {
+                outfile.write(response->body, response->real_length);
+                outfile.close();
+            }
         }
-        if (outfile.is_open()) {
-            outfile.write(response->body.c_str(), response->body.length());
-            outfile.close();
+        else if (response->content_type == "text/plain") {
+            string filepath = "/root/payload/" + to_string(count) + ".txt";
+            ofstream outfile(filepath, ios::out | ios::binary);
+            if (!outfile.is_open()) {
+                mkdir("/root/payload", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+                outfile.open(filepath);
+            }
+            if (outfile.is_open()) {
+                outfile.write(response->body, response->real_length);
+                outfile.close();
+            }
         }
-	}*/
+        else if (response->content_type == "image/jpeg") {
+            string filepath = "/root/payload/" + to_string(count) + ".jpg";
+            ofstream outfile(filepath, ios::out | ios::binary);
+            if (!outfile.is_open()) {
+                mkdir("/root/payload", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+                outfile.open(filepath);
+            }
+            if (outfile.is_open()) {
+                outfile.write(response->body, response->real_length);
+                outfile.close();
+            }
+        }
+        else {
+            string filepath = "/root/payload/" + to_string(count) + ".bin";
+            ofstream outfile(filepath, ios::out | ios::binary);
+            if (!outfile.is_open()) {
+                mkdir("/root/payload", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+                outfile.open(filepath);
+            }
+            if (outfile.is_open()) {
+                outfile.write(response->body, response->real_length);
+                outfile.close();
+            }
+        }
+
+	}
 
     delete request;
 	delete response;
